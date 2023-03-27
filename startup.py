@@ -92,7 +92,7 @@ root.geometry( "800x480" )
 
 # datatype of menu text
 clicked = tk.StringVar()
-ride = tk.Button( root , text = "Refresh List" , command = ssid(ssidsall)).pack()
+relist = tk.Button( root , text = "Refresh List" , command = ssid(ssidsall)).pack()
 drop = tk.OptionMenu( root , clicked , *ssidsall )
 drop.pack()
 
@@ -102,7 +102,6 @@ inputtxt = tk.Text(root,height = 2,width = 10)
 inputtxt.pack()
 
 button = tk.Button( root , text = "Connect To Wifi" , command = connector).pack()
-
 zoom = tk.Button( root , text = "Start Zoom" , command = holder).pack() #exec(open("join_zoom.py").read())
 ride = tk.Button( root , text = "Start Ride" , command = holder).pack()
 
