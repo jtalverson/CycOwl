@@ -61,23 +61,24 @@ def holder():
 
 def ssid(ssidsall):
     print("REACHED")
-    user = os.popen("whoami").read()
-    if 'root' not in user:
-        print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
-        print ('Exiting...')
-        quit()
-    status = os.popen("ifconfig wlan0 up").read()
-    if not 'No such device' in status:
-        winame = "wlan0"
-    stream = os.popen("iwlist " + winame + " scan")
-    networksfound = 0
-    for line in stream:
-        if "ESSID" in line:
-            networksfound += 1
-            ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
-    if networksfound == 0:
-        print ("Looks like we didn't find any networks in your area. Exiting...")
-        ssidsall = ["NO SSIDS AVAILIBLE"]
+    while(1):
+        user = os.popen("whoami").read()
+        if 'root' not in user:
+            print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
+            print ('Exiting...')
+            quit()
+        status = os.popen("ifconfig wlan0 up").read()
+        if not 'No such device' in status:
+            winame = "wlan0"
+        stream = os.popen("iwlist " + winame + " scan")
+        networksfound = 0
+        for line in stream:
+            if "ESSID" in line:
+                networksfound += 1
+                ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
+        if networksfound == 0:
+            print ("Looks like we didn't find any networks in your area. Exiting...")
+            ssidsall = ["NO SSIDS AVAILIBLE"]
     #quit()
     print("ESCAPED")
 winame = ""
