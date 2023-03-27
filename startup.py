@@ -10,15 +10,34 @@ from time import sleep
 #rom selenium.webdriver.support.ui import WebDriverWait
 #rom selenium.webdriver.support import expected_conditions as EC
 
+def start_zoom():
+
 def start_ride():
-    
+
     exec(open("/home/jdlinux/Downloads/CycOwl-main/Detector/video.py").read())
 
 def connector():
-    Wname = clicked.get()
-    password = inputtxt.get(1.0, "end-1c")
-    createNewConnection(Wname,Wname,password)
-    Connect(Wname,Wname)
+    network = clicked.get()
+    tpass = inputtxt.get(1.0, "end-1c")
+    if tpass == '':
+        os.popen("iwconfig " + winame + " essid " + network)
+    else:
+        connectstatus = os.popen("iwconfig " + winame + " essid " + network + " key s:" + tpass)
+    print ("Connecting...")
+    if not commandExists("dhclient"):
+        print ("Looks like there isn't a dhclient program on this computer. Trying dhcpd (Used with Arch)")
+        con2 = os.popen("dhcpcd " + winame).read()
+        print(con2)
+        if not commandExists("dhcpcd"):
+            print ("Well, I'm out of options. Try installing dhcpd or dhclient.")
+            quit()    
+    else:
+        os.popen("dhclient " + winame)
+    ontest = os.popen("ping -c 1 google.com").read()
+    if ontest == '':
+        print ("Connection failed. (Bad pass?)")
+        quit()
+    print ("Connected successfully!")
     timeout = 1
     try:
         requests.head("http://google.com/", timeout=timout)
@@ -58,7 +77,7 @@ for line in stream:
         ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
 if networksfound == 0:
     print ("Looks like we didn't find any networks in your area. Exiting...")
-    ssidsall = ["Hello", "world"]
+    ssidsall = ["NO SSIDS AVAILIBLE"]
     #quit()
 
 # Create object
@@ -78,8 +97,8 @@ inputtxt.pack()
 
 button = tk.Button( root , text = "Connect To Wifi" , command = connector).pack()
 
-zoom = tk.Button( root , text = "Start Zoom" , command = holder()).pack() #exec(open("join_zoom.py").read())
-ride = tk.Button( root , text = "Start Ride" , command = ).pack()
+zoom = tk.Button( root , text = "Start Zoom" , command = holder).pack() #exec(open("join_zoom.py").read())
+ride = tk.Button( root , text = "Start Ride" , command = holder).pack()
 
 # Execute tkinter
 root.mainloop()
