@@ -22,7 +22,6 @@ def start_zoom():
     exec(open("/home/jdlinux/Downloads/CycOwl-main/join_zoom.py").read())
 
 def start_ride():
-
     exec(open("/home/jdlinux/Downloads/CycOwl-main/Detector/video.py").read())
 
 def connector():
@@ -61,30 +60,29 @@ def holder():
 
 def ssid(ssidsall):
     print("REACHED")
-    while(1):
-        user = os.popen("whoami").read()
-        if 'root' not in user:
-            print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
-            print ('Exiting...')
-            quit()
-        status = os.popen("ifconfig wlan0 up").read()
-        if not 'No such device' in status:
-            winame = "wlan0"
-        stream = os.popen("iwlist " + winame + " scan")
-        networksfound = 0
-        for line in stream:
-            if "ESSID" in line:
-                networksfound += 1
-                ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
-        if networksfound == 0:
-            print ("Looks like we didn't find any networks in your area. Exiting...")
-            ssidsall = ["NO SSIDS AVAILIBLE"]
+    user = os.popen("whoami").read()
+    if 'root' not in user:
+        print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
+        print ('Exiting...')
+        quit()
+    status = os.popen("ifconfig wlan0 up").read()
+    if not 'No such device' in status:
+        winame = "wlan0"
+    stream = os.popen("iwlist " + winame + " scan")
+    networksfound = 0
+    for line in stream:
+        if "ESSID" in line:
+            networksfound += 1
+            ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
+    if networksfound == 0:
+        print ("Looks like we didn't find any networks in your area. Exiting...")
+        ssidsall = ["NO SSIDS AVAILIBLE"]
     #quit()
     print("ESCAPED")
 winame = ""
 ssidsall = []
-t1 = continuous_threading.ContinuousThread(target=ssid(ssidsall), args=[])
-t1.start()
+#t1 = continuous_threading.ContinuousThread(target=ssid(ssidsall), args=[])
+#t1.start()
 
 
 # Create object
@@ -94,6 +92,7 @@ root.geometry( "800x480" )
 
 # datatype of menu text
 clicked = tk.StringVar()
+ride = tk.Button( root , text = "Refresh List" , command = ssid(ssidsall)).pack()
 drop = tk.OptionMenu( root , clicked , *ssidsall )
 drop.pack()
 
