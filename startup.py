@@ -5,15 +5,67 @@ import requests
 from time import sleep
 from threading import Thread
 import continuous_threading
-import wifimangement_linux as wifi 
-#from selenium import webdriver
-#from selenium.webdriver.common.keys import Keys
-#from selenium.webdriver.common.action_chains import ActionChains
-#from selenium.webdriver.common.by import By
-#rom selenium.webdriver.support.ui import WebDriverWait
-#rom selenium.webdriver.support import expected_conditions as EC
+import scrapy
+from threading import Thread
+import pandas
+import time
+import os
 
-def start_zoom():
+# initialize the networks dataframe that will contain all access points nearby
+networks = pandas.DataFrame(columns=["BSSID", "SSID", "dBm_Signal", "Channel", "Crypto"])
+# set the index BSSID (MAC address of the AP)
+networks.set_index("BSSID", inplace=True)
+
+def callback(packet):
+    if packet.haslayer(Dot11Beacon):
+        # extract the MAC address of the network
+        bssid = packet[Dot11].addr2
+        # get the name of it
+        ssid = packet[Dot11Elt].info.decode()
+        try:
+            dbm_signal = packet.dBm_AntSignal
+        except:
+            dbm_signal = "N/A"
+        # extract network stats
+        stats = packet[Dot11Beacon].network_stats()
+        # get the channel of the AP
+        channel = stats.get("channel")
+        # get the crypto
+        crypto = stats.get("crypto")
+        networks.loc[bssid] = (ssid, dbm_signal, channel, crypto)
+
+
+def print_all():
+    while True:
+        os.system("clear")
+        print(networks)
+        time.sleep(0.5)
+
+
+def change_channel():
+    ch = 1
+    while True:
+        os.system(f"iwconfig {interface} channel {ch}")
+        # switch channel from 1 to 14 each 0.5s
+        ch = ch % 14 + 1
+        time.sleep(0.5)
+
+
+if __name__ == "__main__":
+    # interface name, check using iwconfig
+    interface = "wlan0mon"
+    # start the thread that prints all the networks
+    printer = Thread(target=print_all)
+    printer.daemon = True
+    printer.start()
+    # start the channel changer
+    channel_changer = Thread(target=change_channel)
+    channel_changer.daemon = True
+    channel_changer.start()
+    # start sniffing
+    sniff(prn=callback, iface=interface)
+
+""" def start_zoom():
     exec(open("/home/jdlinux/Downloads/CycOwl-main/join_zoom.py").read())
 
 def start_ride():
@@ -21,21 +73,8 @@ def start_ride():
 
 def holder():
     print("hello")
-
-def connector():
-    wifi.connect(clicked.get(),inputtxt.get(1.0, "end-1c"))
-
-def ssid(ssidsall):
-    wifi.off()
-    wifi.on()
-    ssidsall = wifi.list()
-
-
-wifi.off()
-wifi.on()
-ssidsall = []
-
-# Create object
+ """
+""" # Create object
 root = tk.Tk()
 # Adjust size
 root.geometry( "800x480" )
@@ -58,3 +97,4 @@ ride = tk.Button( root , text = "Start Ride" , command = holder).pack()
 # Execute tkinter
 root.mainloop()
 
+ """
