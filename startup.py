@@ -5,7 +5,7 @@ import requests
 from time import sleep
 from threading import Thread
 import continuous_threading
-import scrapy
+from scapy.all import *
 from threading import Thread
 import pandas
 import time
