@@ -13,9 +13,6 @@ import continuous_threading
 #rom selenium.webdriver.support import expected_conditions as EC
 
 def commandExists(self, cmd):
-        """
-        Check if command exists
-        """
         return cmd in self._commands and hasattr(self, '_%s' % cmd) and callable(getattr(self, '_%s' % cmd))
 
 def start_zoom():
@@ -32,15 +29,15 @@ def connector():
     else:
         connectstatus = os.popen("iwconfig " + winame + " essid " + network + " key s:" + tpass)
     print ("Connecting...")
-    if not commandExists("dhclient"):
-        print ("Looks like there isn't a dhclient program on this computer. Trying dhcpd (Used with Arch)")
-        con2 = os.popen("dhcpcd " + winame).read()
-        print(con2)
-        if not commandExists("dhcpcd"):
-            print ("Well, I'm out of options. Try installing dhcpd or dhclient.")
-            quit()    
-    else:
-        os.popen("dhclient " + winame)
+    #if not commandExists("dhclient"):
+        #print ("Looks like there isn't a dhclient program on this computer. Trying dhcpd (Used with Arch)")
+        #con2 = os.popen("dhcpcd " + winame).read()
+        #print(con2)
+        #if not commandExists("dhcpcd"):
+            #print ("Well, I'm out of options. Try installing dhcpd or dhclient.")
+            #quit()
+    # else:    
+    os.popen("dhclient " + winame)
     ontest = os.popen("ping -c 1 google.com").read()
     if ontest == '':
         print ("Connection failed. (Bad pass?)")
