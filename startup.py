@@ -48,8 +48,8 @@ def connector():
     print ("Connected successfully!")
     timeout = 1
     try:
-        requests.head("http://google.com/", timeout=timout)
-        l = tk.label(root,text = "Current WiFi Connection: " + name)
+        requests.head("http://google.com/", timeout=timeout)
+        l = tk.label(root,text = "Current WiFi Connection: " + network)
         l.pack()
     except:
         t = tk.Label(root,text = "Failed to Connect, Try Again")
@@ -83,8 +83,9 @@ def ssid(ssidsall):
 winame = ""
 ssidsall = []
 t1 = Thread(target=ssid(ssidsall), args=[])
+t1.setDaemon(True)
 t1.start()
-t1.join()
+
 
 # Create object
 root = tk.Tk()
