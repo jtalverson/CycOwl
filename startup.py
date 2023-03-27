@@ -58,7 +58,7 @@ def connector():
 def holder():
     print("hello")
 
-def ssid():
+def ssid(ssidsall):
     print("REACHED")
     while(1):
         user = os.popen("whoami").read()
@@ -81,8 +81,8 @@ def ssid():
     #quit()
     print("ESCAPED")
 winame = ""
-ssidsall = ["hello"]
-t1 = Thread(target=ssid, args=[])
+ssidsall = []
+t1 = Thread(target=ssid(ssidsall), args=[])
 t1.start()
 t1.join()
 
