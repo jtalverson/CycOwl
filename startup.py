@@ -4,6 +4,7 @@ import tkinter as tk
 import requests
 from time import sleep
 from threading import Thread
+import continuous_threading
 #from selenium import webdriver
 #from selenium.webdriver.common.keys import Keys
 #from selenium.webdriver.common.action_chains import ActionChains
@@ -60,30 +61,28 @@ def holder():
 
 def ssid(ssidsall):
     print("REACHED")
-    while(1):
-        user = os.popen("whoami").read()
-        if 'root' not in user:
-            print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
-            print ('Exiting...')
-            quit()
-        status = os.popen("ifconfig wlan0 up").read()
-        if not 'No such device' in status:
-            winame = "wlan0"
-        stream = os.popen("iwlist " + winame + " scan")
-        networksfound = 0
-        for line in stream:
-            if "ESSID" in line:
-                networksfound += 1
-                ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
-        if networksfound == 0:
-            print ("Looks like we didn't find any networks in your area. Exiting...")
-            ssidsall = ["NO SSIDS AVAILIBLE"]
+    user = os.popen("whoami").read()
+    if 'root' not in user:
+        print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
+        print ('Exiting...')
+        quit()
+    status = os.popen("ifconfig wlan0 up").read()
+    if not 'No such device' in status:
+        winame = "wlan0"
+    stream = os.popen("iwlist " + winame + " scan")
+    networksfound = 0
+    for line in stream:
+        if "ESSID" in line:
+            networksfound += 1
+            ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
+    if networksfound == 0:
+        print ("Looks like we didn't find any networks in your area. Exiting...")
+        ssidsall = ["NO SSIDS AVAILIBLE"]
     #quit()
     print("ESCAPED")
 winame = ""
 ssidsall = []
-t1 = Thread(target=ssid(ssidsall), args=[])
-t1.setDaemon(True)
+t1 = continuous_threading.ContinuousThread(target=ssid(ssidsall), args=[])
 t1.start()
 
 
