@@ -9,6 +9,11 @@ from time import sleep
 #from selenium.webdriver.common.by import By
 #rom selenium.webdriver.support.ui import WebDriverWait
 #rom selenium.webdriver.support import expected_conditions as EC
+def commandExists(self, cmd):
+        """
+        Check if command exists
+        """
+        return cmd in self._commands and hasattr(self, '_%s' % cmd) and callable(getattr(self, '_%s' % cmd))
 
 def start_zoom():
 
