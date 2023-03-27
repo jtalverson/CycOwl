@@ -3,12 +3,14 @@ import subprocess
 import tkinter as tk
 import requests
 from time import sleep
+from threading import Thread
 #from selenium import webdriver
 #from selenium.webdriver.common.keys import Keys
 #from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.common.by import By
 #rom selenium.webdriver.support.ui import WebDriverWait
 #rom selenium.webdriver.support import expected_conditions as EC
+
 def commandExists(self, cmd):
         """
         Check if command exists
@@ -16,6 +18,7 @@ def commandExists(self, cmd):
         return cmd in self._commands and hasattr(self, '_%s' % cmd) and callable(getattr(self, '_%s' % cmd))
 
 def start_zoom():
+    exec(open("/home/jdlinux/Downloads/CycOwl-main/join_zoom.py").read())
 
 def start_ride():
 
@@ -55,35 +58,33 @@ def connector():
 def holder():
     print("hello")
 
-print ("Checking for root access...")
-user = os.popen("whoami").read()
-if 'root' not in user:
-    print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
-    print ('Exiting...')
-    quit()
-else:
-    print('Good job, you\'re root.')
-
-print ("Trying to activate the default wlan0 network...")
-status = os.popen("ifconfig wlan0 up").read()
-if 'No such device' in status:
-    print ("It seems your wireless device is not named wlan0, so you're going to need to enter it manually.")
-    winame = raw_input('Wireless Device Name: ')
-else:
-    winame = "wlan0"
-print ("Wireless device enabled!")
-print ("Checking for available wireless networks...")
-stream = os.popen("iwlist " + winame + " scan")
-print ("Available Networks:")
-networksfound = 0
-for line in stream:
-    if "ESSID" in line:
-        networksfound += 1
-        ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
-if networksfound == 0:
-    print ("Looks like we didn't find any networks in your area. Exiting...")
-    ssidsall = ["NO SSIDS AVAILIBLE"]
+def ssid():
+    print("REACHED")
+    while(1):
+        user = os.popen("whoami").read()
+        if 'root' not in user:
+            print('You need to be the root user to run this program and you are running as '+user+'  Try sudo python <ScriptName>.py')
+            print ('Exiting...')
+            quit()
+        status = os.popen("ifconfig wlan0 up").read()
+        if not 'No such device' in status:
+            winame = "wlan0"
+        stream = os.popen("iwlist " + winame + " scan")
+        networksfound = 0
+        for line in stream:
+            if "ESSID" in line:
+                networksfound += 1
+                ssidsall.append(line.split('ESSID:"', 1)[1].split('"', 1)[0])
+        if networksfound == 0:
+            print ("Looks like we didn't find any networks in your area. Exiting...")
+            ssidsall = ["NO SSIDS AVAILIBLE"]
     #quit()
+    print("ESCAPED")
+winame = ""
+ssidsall = ["hello"]
+t1 = Thread(target=ssid, args=[])
+t1.start()
+t1.join()
 
 # Create object
 root = tk.Tk()
