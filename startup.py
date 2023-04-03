@@ -78,8 +78,9 @@ def scanWifi():
 	response = ""
 	p = pexpect.spawn('sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d \' \' - - | cut -c2- | sort -gr', encoding ='utf-8')
 	p.logfile_read = sys.stdout
-	p.expect('[sudo] password for capstone:')
+	p.expect_exact('[sudo] password for capstone: ')
 	p.sendline("cap2023")
+	#p.expect(pexpect.EOF, timeout=None)
 	response = p.after
 	print(response)
 
