@@ -69,12 +69,32 @@ def disconnect(prev):
 	p.close()
 	return prev
 
+def getWifi():
+	termOut = pexpect.run('iwgetid -r')
+	output = (termOut.decode('utf-8')).split("\r")
+	return output
+
+def scanWifi():
+	termOut = pexpect.run('sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d \' \' - - | cut -c2- | sort -gr')
+	output = (termOut.decode('utf-8')).split("\r")
+	print(output)
+
 prev = ""
 devices = []
 connections = []
+
+"""
 devices,connections = scan()
 print("here")
 got = input()
 got = int(got)
 connect(got,devices,connections,prev)
 disconnect(prev)
+"""
+
+prevW = getWifi()
+print(prevW)
+devicesW = []
+connectionsW = []
+getWifi()
+
