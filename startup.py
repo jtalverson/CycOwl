@@ -75,9 +75,13 @@ def getWifi():
 	return output
 
 def scanWifi():
-	termOut = pexpect.run('sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d \' \' - - | cut -c2- | sort -gr')
-	output = (termOut.decode('utf-8')).split("\r")
-	print(output)
+	response = ""
+	p = pexpect.spawn('sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d \' \' - - | cut -c2- | sort -gr', encoding ='utf-8')
+	p.logfile_read = sys.stdout
+	p.expect('[sudo] password for capstone:')
+	p.sendline("cap2023")
+	response = p.after
+	print(response)
 
 prev = ""
 devices = []
@@ -96,5 +100,5 @@ prevW = getWifi()
 print(prevW)
 devicesW = []
 connectionsW = []
-getWifi()
+scanWifi()
 
