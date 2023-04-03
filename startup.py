@@ -3,6 +3,7 @@ import tkinter as tk
 import pexpect
 import sys
 import time
+import wifi
 
 def scan():
 	termOut = pexpect.run('hcitool scan')
@@ -75,14 +76,48 @@ def getWifi():
 	return output
 
 def scanWifi():
-	response = ""
-	p = pexpect.spawn('sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d \' \' - - | cut -c2- | sort -gr', encoding ='utf-8')
+	command = '/bin/bash -c "sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d  - - | cut -c2- | sort -gr"'
+	#'nmcli device wifi list'
+	p = pexpect.spawn(command, encoding = 'utf-8')
 	p.logfile_read = sys.stdout
-	p.expect_exact('[sudo] password for capstone: ')
-	p.sendline("cap2023")
-	#p.expect(pexpect.EOF, timeout=None)
-	response = p.after
-	print(response)
+	p.expect(pexpect.EOF, timeout=None)		
+	out = p.before
+	outList = out.split("\n")
+	listStart =int (len(outList)/2)
+	flist = []
+	for x in range(listStart):
+		temp = outList[x+listStart].replace('\r','')
+		temp = temp.replace('\t','')
+		flist.append(temp)
+	return flist
+
+def disconnectWifi():
+	prev = getWifi()
+	command = 'nmcli d wifi disconnect ' + prev[0]
+	pexpect.run(command)
+
+def getPassword():
+	password = "test1234" #tkinter
+	return password
+
+def connectWifi(ssid):
+	prev = getWifi()
+	#if(prev != ""):
+		#disconnectWifi(prev)
+	password = getPassword()
+	command = 'nmcli -a d wifi connect ' + ssid
+	p = pexpect.spawn(command, encoding = 'utf-8')
+	p.logfile_read = sys.stdout
+	p.expect("Password: ")
+	p.sendline(password)
+
+def startupWifi():
+	pexpect.run('nmcli radio wifi off')
+	time.sleep(3)
+	pexpect.run('nmcli radio wifi on')
+	time.sleep(8)
+	
+#startupWifi()
 
 prev = ""
 devices = []
@@ -98,8 +133,8 @@ disconnect(prev)
 """
 
 prevW = getWifi()
-print(prevW)
 devicesW = []
-connectionsW = []
-scanWifi()
+devicesW = scanWifi()
+#connectWifi('MySpectrumWiFi54-5G')
+#disconnectWifi()
 
