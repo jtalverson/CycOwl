@@ -6,27 +6,29 @@ import time
 import wifi
 class App():
     def __init__(self):
-       # startupWifi(self)
         self.bdevices = []
         self.bmacs = []
         self.bprev = ""
         self.selectedB = ""
-        scan(self)
-        print(self.bdevices)
-        self.tmp = int(input("HERE: "))
-        connect(self)
-        disconnect(self)
-        scan(self)
-        print(self.bdevices)
-        self.tmp = int(input("HERE: "))
-        connect(self)
-        disconnect(self)
         self.wdevices = []
         self.wpass = ""
         self.wcurrent = ""
         self.selectedW = ""
-       # getWifis(self)
-       # print(self.wcurrent)
+        
+        startupWifi(self)
+        scan(self)
+        # print(self.bdevices)
+        # self.tmp = int(input("HERE: "))
+        # connect(self)
+        # disconnect(self)
+        # scan(self)
+        # print(self.bdevices)
+        # self.tmp = int(input("HERE: "))
+        # connect(self)
+        # disconnect(self)
+
+        getWifis(self)
+        print(self.wcurrent)
 		
 		
 
