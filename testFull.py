@@ -6,19 +6,27 @@ import time
 import wifi
 class App():
     def __init__(self):
+       # startupWifi(self)
         self.bdevices = []
         self.bmacs = []
         self.bprev = ""
         self.selectedB = ""
         scan(self)
         print(self.bdevices)
-        self.tmp = 0
         self.tmp = int(input("HERE: "))
         connect(self)
+        disconnect(self)
+        scan(self)
+        print(self.bdevices)
+        self.tmp = int(input("HERE: "))
+        connect(self)
+        disconnect(self)
         self.wdevices = []
         self.wpass = ""
         self.wcurrent = ""
         self.selectedW = ""
+       # getWifis(self)
+       # print(self.wcurrent)
 		
 		
 
@@ -119,7 +127,7 @@ def connectWifi(self):
 
 def disconnectWifi(self):
     prev = self.wcurrent
-    command = 'nmcli d wifi disconnect ' + prev[0]
+    command = 'nmcli d wifi disconnect ' + self.wcurrent
     pexpect.run(command)
 
 def getWifis(self):
