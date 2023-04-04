@@ -29,6 +29,8 @@ class App():
 
         getWifis(self)
         print(self.wcurrent)
+        scanWifi(self)
+        print(self.wdevices)
 		
 		
 
