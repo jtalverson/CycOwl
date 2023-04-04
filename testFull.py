@@ -5,56 +5,66 @@ import sys
 import time
 import wifi
 class App():
-	def __init__(self):
-		self.bdevices = []
-		self.bmacs = []
-		self.bprev = ""
-		self.selectedB = ""
+    def __init__(self):
+        self.bdevices = []
+        self.bmacs = []
+        self.bprev = ""
+        self.selectedB = ""
+        scan(self)
+        print(self.bdevices)
+        print("here")
+        self.tmp = 0
+        self.tmp = int(input)
+        connect(self)
+        self.wdevices = []
+        self.wpass = ""
+        self.wcurrent = ""
+        self.selectedW = ""
+		
+		
 
-		self.wdevices = []
-		self.wpass = ""
-		self.wcurrent = ""
-		self.selectedW = ""
-		scan()
 
-	def connect(self):
-		index = self.bdevices.index(self.selectedB)
-		name = self.bdevices[index]
-		address = self.bmacs[index]
 
-		response = ''
-		p = pexpect.spawn('bluetoothctl',encoding='utf-8')
-		p.logfile_read = sys.stdout
-		p.expect('#')
-		if(self.bprev != ""):
-			p.sendline("disconnect " + self.bprev)
-			p.expect("#")
-		p.sendline("remove " +address)
-		p.sendline("scan on")
-		p.expect("#")
-		mylist = ["Discovery started","Failed to start discovery","Device "+address+" not available","Failed to connect","Connection successful"]
-		while response != "Connection successful":
-			p.expect(mylist)
-			response=p.after
-			p.sendline("connect "+address)
-			time.sleep(1)
-		self.bprev = address
-		p.sendline("quit")
-		p.close()
 
-	def disconnect(self):
-		response = ''
-		p = pexpect.spawn('bluetoothctl',encoding='utf-8')
-		p.logfile_read = sys.stdout
-		p.expect('#')
-		if(self.bprev != ""):
-			p.sendline("disconnect " + self.bprev)
-			p.expect("#")
-			self.bprev = ""
-		else:
-			print("No Bluetooth Devices are connected")
-		p.sendline("quit")
-		p.close()
+
+def connect(self):
+    index = self.tmp      #self.bdevices.index(self.selectedB)
+    name = self.bdevices[index]
+    address = self.bmacs[index]
+
+    response = ''
+    p = pexpect.spawn('bluetoothctl',encoding='utf-8')
+    p.logfile_read = sys.stdout
+    p.expect('#')
+    if(self.bprev != ""):
+        p.sendline("disconnect " + self.bprev)
+        p.expect("#")
+    p.sendline("remove " +address)
+    p.sendline("scan on")
+    p.expect("#")
+    mylist = ["Discovery started","Failed to start discovery","Device "+address+" not available","Failed to connect","Connection successful"]
+    while response != "Connection successful":
+        p.expect(mylist)
+        response=p.after
+        p.sendline("connect "+address)
+        time.sleep(1)
+    self.bprev = address
+    p.sendline("quit")
+    p.close()
+
+def disconnect(self):
+    response = ''
+    p = pexpect.spawn('bluetoothctl',encoding='utf-8')
+    p.logfile_read = sys.stdout
+    p.expect('#')
+    if(self.bprev != ""):
+        p.sendline("disconnect " + self.bprev)
+        p.expect("#")
+        self.bprev = ""
+    else:
+        print("No Bluetooth Devices are connected")
+    p.sendline("quit")
+    p.close()
 		
 def scan(self):
 		termOut = pexpect.run('hcitool scan')
@@ -79,52 +89,49 @@ def scan(self):
 				devices.pop(len(devices)-1)
 		self.bdevices = devices
 		self.bmacs = connections
-		print(self.bdevices)
 
-"""
-	def scanWifi(self):
-		command = '/bin/bash -c "sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d  - - | cut -c2- | sort -gr"'
-		#'nmcli device wifi list'
-		p = pexpect.spawn(command, encoding = 'utf-8')
-		p.logfile_read = sys.stdout
-		p.expect(pexpect.EOF, timeout=None)		
-		out = p.before
-		outList = out.split("\n")
-		listStart =int (len(outList)/2)
-		flist = []
-		for x in range(listStart):
-			temp = outList[x+listStart].replace('\r','')
-			temp = temp.replace('\t','')
-			flist.append(temp)
-		self.wdevices = flist
+def scanWifi(self):
+    command = '/bin/bash -c "sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d  - - | cut -c2- | sort -gr"'
+    #'nmcli device wifi list'
+    p = pexpect.spawn(command, encoding = 'utf-8')
+    p.logfile_read = sys.stdout
+    p.expect(pexpect.EOF, timeout=None)		
+    out = p.before
+    outList = out.split("\n")
+    listStart =int (len(outList)/2)
+    flist = []
+    for x in range(listStart):
+        temp = outList[x+listStart].replace('\r','')
+        temp = temp.replace('\t','')
+        flist.append(temp)
+    self.wdevices = flist
 
-	def connectWifi(self):
-		prev = self.wcurrent
-		if(self.wcurrent != ""):
-			command = 'nmcli d wifi disconnect ' + prev[0]
-			pexpect.run(command)
-		password = self.wpass
-		command = 'nmcli -a d wifi connect ' + self.selectedW
-		p = pexpect.spawn(command, encoding = 'utf-8')
-		p.logfile_read = sys.stdout
-		p.expect("Password: ")
-		p.sendline(password)
+def connectWifi(self):
+    prev = self.wcurrent
+    if(self.wcurrent != ""):
+        command = 'nmcli d wifi disconnect ' + prev[0]
+        pexpect.run(command)
+    password = self.wpass
+    command = 'nmcli -a d wifi connect ' + self.selectedW
+    p = pexpect.spawn(command, encoding = 'utf-8')
+    p.logfile_read = sys.stdout
+    p.expect("Password: ")
+    p.sendline(password)
 
-	def disconnectWifi(self):
-		prev = self.wcurrent
-		command = 'nmcli d wifi disconnect ' + prev[0]
-		pexpect.run(command)
+def disconnectWifi(self):
+    prev = self.wcurrent
+    command = 'nmcli d wifi disconnect ' + prev[0]
+    pexpect.run(command)
 
-	def getWifis(self):
-		termOut = pexpect.run('iwgetid -r')
-		output = (termOut.decode('utf-8')).split("\r")
-		self.wcurrent = output[0]
+def getWifis(self):
+    termOut = pexpect.run('iwgetid -r')
+    output = (termOut.decode('utf-8')).split("\r")
+    self.wcurrent = output[0]
 
-	def startupWifi(self):
-		pexpect.run('nmcli radio wifi off')
-		time.sleep(3)
-		pexpect.run('nmcli radio wifi on')
-		time.sleep(8)
-	"""
+def startupWifi(self):
+    pexpect.run('nmcli radio wifi off')
+    time.sleep(3)
+    pexpect.run('nmcli radio wifi on')
+    time.sleep(8)
 
 tmp = App()
