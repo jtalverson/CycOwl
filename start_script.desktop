@@ -1,0 +1,6 @@
+# place in .config/autostart
+[Desktop Entry]
+Name=Launch Script on Desktop
+Exec=/home/capstone/tkinter_basic.py
+Terminal=true
+Type=Application

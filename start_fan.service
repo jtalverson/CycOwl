@@ -1,0 +1,9 @@
+# place in /etc/systemd/system
+[Unit]
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "sudo /usr/bin/jetson_clocks --fan"
+
+[Install]
+WantedBy=default.target
