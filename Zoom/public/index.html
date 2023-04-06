@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoom Web SDK Demo</title>
+  <link type="text/css" rel="stylesheet" href="/node_modules/@zoomus/websdk/dist/css/bootstrap.css" />
+  <link type="text/css" rel="stylesheet" href="/node_modules/@zoomus/websdk/dist/css/react-select.css" />
+</head>
+<body>
+  <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react-dom.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/redux.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/redux-thunk.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/lodash.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/jquery-i18next.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/i18next.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/zoomus-websdk.umd.min.js"></script>
+  <script>
+    ZoomMtg.setZoomJSLib('/node_modules/@zoomus/websdk/dist/lib', '/av');
+    ZoomMtg.preLoadWasm();
+    ZoomMtg.prepareJssdk();
+
+    const API_KEY = 'YOUR_API_KEY';
+    const API_SECRET = 'YOUR_API_SECRET';
+
+   
+    function generateSignature(meetingNumber, role) {
+      const timestamp = new Date().getTime() - 30000;
+      const msg = Buffer.from(API_KEY + meetingNumber + timestamp + role).toString('base64');
+      const hash = crypto.createHmac('sha256', API_SECRET).update(msg).digest('base64');
+      const signature = Buffer.from(`${API_KEY}.${meetingNumber}.${timestamp}.${role}.${hash}`).toString('base64');
+
+      return signature;
+    }
+
+    document.addEventListener('DOMContentLoaded', function(event) {
+      const testTool = window.testTool;
+      const meetingNumber = '123456789';
+      const userName = 'WebSDK';
+      const userEmail = '';
+      const passWord = '';
+      const role = 0;
+
+      const signature = generateSignature(meetingNumber, role);
+
+      ZoomMtg.init({
+        leaveUrl: 'https://your-domain.com',
+        isSupportAV: true,
+        success: function() {
+          ZoomMtg.join({
+            meetingNumber: meetingNumber,
+            userName: userName,
+            signature: signature,
+            apiKey: API_KEY,
+            userEmail: userEmail,
+            passWord: passWord,
+            success: function() {
+              console.log('Join meeting success');
+            },
+            error: function(res) {
+              console.log(res);
+            }
+          });
+        },
+        error: function(res) {
+          console.log(res);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
