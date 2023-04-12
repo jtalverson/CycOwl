@@ -8,6 +8,26 @@
   <link type="text/css" rel="stylesheet" href="/node_modules/@zoomus/websdk/dist/css/react-select.css" />
 </head>
 <body>
+  <div id="zmmtg-root"></div>
+  <div id="aria-notify-area"></div>
+
+  <h1>Join a Zoom Meeting</h1>
+  <form id="join-meeting-form">
+    <label for="meeting-number">Meeting Number:</label>
+    <input type="text" id="meeting-number" required>
+    <br>
+
+    <label for="display-name">Display Name:</label>
+    <input type="text" id="display-name" required>
+    <br>
+
+    <label for="meeting-password">Meeting Password (if required):</label>
+    <input type="text" id="meeting-password">
+    <br>
+
+    <button type="submit">Join Meeting</button>
+  </form>
+
   <script src="/node_modules/jquery/dist/jquery.min.js"></script>
   <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react.min.js"></script>
   <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react-dom.min.js"></script>
@@ -25,7 +45,6 @@
     const API_KEY = 'YOUR_API_KEY';
     const API_SECRET = 'YOUR_API_SECRET';
 
-   
     function generateSignature(meetingNumber, role) {
       const timestamp = new Date().getTime() - 30000;
       const msg = Buffer.from(API_KEY + meetingNumber + timestamp + role).toString('base64');
@@ -35,12 +54,12 @@
       return signature;
     }
 
-    document.addEventListener('DOMContentLoaded', function(event) {
-      const testTool = window.testTool;
-      const meetingNumber = '123456789';
-      const userName = 'WebSDK';
-      const userEmail = '';
-      const passWord = '';
+    document.getElementById('join-meeting-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const meetingNumber = document.getElementById('meeting-number').value;
+      const userName = document.getElementById('display-name').value;
+      const passWord = document.getElementById('meeting-password').value || '';
       const role = 0;
 
       const signature = generateSignature(meetingNumber, role);
@@ -54,7 +73,7 @@
             userName: userName,
             signature: signature,
             apiKey: API_KEY,
-            userEmail: userEmail,
+            userEmail: '',
             passWord: passWord,
             success: function() {
               console.log('Join meeting success');
@@ -72,3 +91,4 @@
   </script>
 </body>
 </html>
+
