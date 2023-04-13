@@ -68,19 +68,17 @@
 
 
   document.getElementById('join-meeting-form').addEventListener('submit', async function(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const meetingNumber = document.getElementById('meeting-number').value;
-  const userName = document.getElementById('display-name').value;
-  const passWord = document.getElementById('meeting-password').value || '';
-  const role = 0;
+    const meetingNumber = document.getElementById('meeting-number').value;
+    const userName = document.getElementById('display-name').value;
+    const passWord = document.getElementById('meeting-password').value || '';
+    const role = 0;
 
-  const signature = await generateSignature(meetingNumber, role);
-  // ...
-});
+    const signature = await generateSignature(meetingNumber, role);
 
       ZoomMtg.init({
-        leaveUrl: 'https://your-domain.com',
+        leaveUrl: 'https://localhost:3000',
         isSupportAV: true,
         success: function() {
           ZoomMtg.join({
@@ -102,6 +100,7 @@
           console.log(res);
         }
       });
+    });
   </script>
 </body>
 </html>
