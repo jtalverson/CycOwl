@@ -70,6 +70,10 @@ class App(customtkinter.CTk):
         self.exit_button = customtkinter.CTkButton(self.sidebar_frame, text="Exit", command=self.destroy)
         self.exit_button.grid(row = 7, column = 0, padx = 20, pady = (20 , 10))
 
+        self.key_button = customtkinter.CTkButton(self.sidebar_frame, text="Keyboard", command = lambda: callKey(self))
+        self.key_button.grid(row = 8, column = 0, padx = 20, pady = (20 , 10))
+
+
         #Wifi Frame
         self.wifi_frame = customtkinter.CTkFrame(self,width = 100,corner_radius = 0)
         self.wifi_frame.grid(row=0, column=1, rowspan=4, sticky="nsew")
@@ -266,6 +270,12 @@ def callConnectWifi(self):
     self.selectedW = self.wifi_optionmenu.get()
     self.wpass = self.passentry.get()
     connectWifi(self)
+
+def callKey(self):
+    command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false'
+    pexpect.run(command)
+    command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true'
+    pexpect.run(command)
 
 if __name__ == "__main__":
     app = App()
