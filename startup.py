@@ -1,7 +1,6 @@
 import tkinter
 import tkinter.messagebox
 import customtkinter
-import kivy  
 import os
 import pexpect
 import sys
@@ -17,7 +16,6 @@ class App(customtkinter.CTk):
         super().__init__()
         customtkinter.set_widget_scaling(1.2)
         customtkinter.set_appearance_mode("Dark")
-        self.startup = 1
 
         self.bdevices = []
         self.bmacs = []
@@ -39,6 +37,8 @@ class App(customtkinter.CTk):
         scan(self)
         scanWifi(self)
         getWifis(self)
+
+        self.var = customtkinter.StringVar(self)
 
         # configure grid layout (4x4)
         self.grid_columnconfigure((0, 1), weight=1)
@@ -64,7 +64,7 @@ class App(customtkinter.CTk):
                                                                command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=5, column=0, padx=20, pady=(10, 20))
 
-        self.up_connect = customtkinter.CTkButton(master=self.sidebar_frame, text = "Update Connections" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
+        self.up_connect = customtkinter.CTkButton(master=self.sidebar_frame, text = "Update Connections" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: callUpdate(self))
         self.up_connect.grid(row=6, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew")
         
         self.exit_button = customtkinter.CTkButton(self.sidebar_frame, text="Exit", command=self.destroy)
@@ -79,13 +79,12 @@ class App(customtkinter.CTk):
 
         self.wifiList = customtkinter.CTkLabel(self.wifi_frame, text="Access Points Availible:", anchor="w")
         self.wifiList.grid(row=2, column=1, padx=20, pady=(10, 0))
-        self.wifi_optionmenu = customtkinter.CTkOptionMenu(self.wifi_frame, values = self.wdevices,
-                                                                       command=self.change_appearance_mode_event)
+        self.wifi_optionmenu = customtkinter.CTkOptionMenu(self.wifi_frame, values = self.wdevices)
         self.wifi_optionmenu.grid(row=3, column=1, padx=20, pady=(10, 10))
         self.passentry = customtkinter.CTkEntry(self.wifi_frame, placeholder_text="Enter WiFi Password Here")
         self.passentry.grid(row=5, column=1, columnspan=1, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
-        self.wifi_connect = customtkinter.CTkButton(master=self.wifi_frame, text = "Connect Wi-Fi" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = callConnectWifi(self))
+        self.wifi_connect = customtkinter.CTkButton(master=self.wifi_frame, text = "Connect Wi-Fi" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command =lambda: callConnectWifi(self))
         self.wifi_connect.grid(row=6, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
         #Bluetooth Frame
@@ -97,11 +96,10 @@ class App(customtkinter.CTk):
 
         self.blueList = customtkinter.CTkLabel(self.blue_frame, text="Devices Avalible:", anchor="w")
         self.blueList.grid(row=2, column=2, padx=20, pady=(10, 0))
-        self.blue_optionemenu = customtkinter.CTkOptionMenu(self.blue_frame, values=["Light", "Dark", "System"],
-                                                                       command=self.change_appearance_mode_event)
-        self.blue_optionemenu.grid(row=3, column=2, padx=20, pady=(10, 10))
+        self.blue_optionmenu = customtkinter.CTkOptionMenu(self.blue_frame, values=self.bdevices)
+        self.blue_optionmenu.grid(row=3, column=2, padx=20, pady=(10, 10))
 
-        self.blue_connect = customtkinter.CTkButton(master=self.blue_frame, text = "Connect Bluetooth" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
+        self.blue_connect = customtkinter.CTkButton(master=self.blue_frame, text = "Connect Bluetooth" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: callConnectBluetooth(self))
         self.blue_connect.grid(row=5, column=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
         #start zoom and ride
@@ -138,13 +136,8 @@ class App(customtkinter.CTk):
     def Close(self):
         self.destroy()
 
-def callConnectWifi(self):
-    self.selectedW = self.wifi_optionmenu.get()
-    self.wpass = self.passentry.get()
-    connectWifi(self)
-
 def connect(self):
-    index = self.tmp      #self.bdevices.index(self.selectedB)
+    index = self.bdevices.index(self.selectedB)
     name = self.bdevices[index]
     address = self.bmacs[index]
 
@@ -228,19 +221,16 @@ def scanWifi(self):
     	self.wdevices = ["NONE"]
 
 def connectWifi(self):
-    if(self.startup != 1):
-        prev = self.wcurrent
-        if(self.wcurrent != ""):
-            command = 'nmcli d wifi disconnect ' + prev[0]
-            pexpect.run(command)
-        password = self.wpass
-        command = 'nmcli -a d wifi connect ' + self.selectedW
-        p = pexpect.spawn(command, encoding = 'utf-8')
-        p.logfile_read = sys.stdout
-        p.expect("Password: ")
-        p.sendline(password)
-    else:
-        self.startup = 0
+    prev = self.wcurrent
+    if(self.wcurrent != ""):
+        command = 'nmcli d wifi disconnect ' + prev[0]
+        pexpect.run(command)
+    password = self.wpass
+    command = 'nmcli -a d wifi connect ' + self.selectedW
+    p = pexpect.spawn(command, encoding = 'utf-8')
+    p.logfile_read = sys.stdout
+    p.expect("Password:")
+    p.sendline(password)
 
 def disconnectWifi(self):
     prev = self.wcurrent
@@ -258,6 +248,24 @@ def startupWifi(self):
     pexpect.run('nmcli radio wifi on')
     time.sleep(8)
 
+def callUpdate(self):
+    scan(self)
+    scanWifi(self)
+    self.var.set('')
+    for string in self.bdevices:
+         self.blue_optionmenu.add_command(label = string, command = customtkinter.setit(self.var,string))
+    self.var.set('')
+    for string in self.wdevices:
+         self.wifi_optionmenu.add_command(label = string, command = customtkinter.setit(self.var,string))
+
+def callConnectBluetooth(self):
+    self.selectedB = self.blue_optionmenu.get()
+    connect(self)
+
+def callConnectWifi(self):
+    self.selectedW = self.wifi_optionmenu.get()
+    self.wpass = self.passentry.get()
+    connectWifi(self)
 
 if __name__ == "__main__":
     app = App()
