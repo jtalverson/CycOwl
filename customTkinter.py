@@ -2,8 +2,12 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 import kivy  
-from kivy.app import App
-from kivy.uix.vkeyboard import VKeyboard
+import os
+import pexpect
+import sys
+import time
+import wifi
+
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -11,17 +15,35 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        customtkinter.set_widget_scaling(1.2)
+        customtkinter.set_appearance_mode("Dark")
+        self.startup = 1
+
+        self.bdevices = []
+        self.bmacs = []
+        self.bprev = ""
+        self.selectedB = ""
+        self.wdevices = []
+        self.wpass = ""
+        self.wcurrent = ""
+        self.selectedW = ""
 
         # configure window
         self.title("CustomTkinter complex_example.py")
         #self.geometry(f"{800}x{480}")
-        #self.geometry(f"{1024}x{720}")
+        #self.attributes('-topmost', True)
         self.attributes('-fullscreen', True)
+	#self.attributes('-topmost', True)
+
+        startupWifi(self)
+        scan(self)
+        scanWifi(self)
+        getWifis(self)
 
         # configure grid layout (4x4)
         self.grid_columnconfigure((0, 1), weight=1)
         self.grid_columnconfigure((2, 3), weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7 , 8), weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=100, corner_radius=0)
@@ -57,13 +79,13 @@ class App(customtkinter.CTk):
 
         self.wifiList = customtkinter.CTkLabel(self.wifi_frame, text="Access Points Availible:", anchor="w")
         self.wifiList.grid(row=2, column=1, padx=20, pady=(10, 0))
-        self.wifi_optionemenu = customtkinter.CTkOptionMenu(self.wifi_frame, values=["Light", "Dark", "System"],
+        self.wifi_optionmenu = customtkinter.CTkOptionMenu(self.wifi_frame, values = self.wdevices,
                                                                        command=self.change_appearance_mode_event)
-        self.wifi_optionemenu.grid(row=3, column=1, padx=20, pady=(10, 10))
-        self.passentry = customtkinter.CTkEntry(self.wifi_frame, placeholder_text="Enter WiFi Password Here", command = key)
+        self.wifi_optionmenu.grid(row=3, column=1, padx=20, pady=(10, 10))
+        self.passentry = customtkinter.CTkEntry(self.wifi_frame, placeholder_text="Enter WiFi Password Here")
         self.passentry.grid(row=5, column=1, columnspan=1, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
-        self.wifi_connect = customtkinter.CTkButton(master=self.wifi_frame, text = "Connect Wi-Fi" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
+        self.wifi_connect = customtkinter.CTkButton(master=self.wifi_frame, text = "Connect Wi-Fi" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = callConnectWifi(self))
         self.wifi_connect.grid(row=6, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
         #Bluetooth Frame
@@ -116,8 +138,123 @@ class App(customtkinter.CTk):
     def Close(self):
         self.destroy()
 
-def key(VKeyboard):
-    player = VKeyboard()
+def callConnectWifi(self):
+    self.selectedW = self.wifi_optionmenu.get()
+    self.wpass = self.passentry.get()
+    connectWifi(self)
+
+def connect(self):
+    index = self.tmp      #self.bdevices.index(self.selectedB)
+    name = self.bdevices[index]
+    address = self.bmacs[index]
+
+    response = ''
+    p = pexpect.spawn('bluetoothctl',encoding='utf-8')
+    p.logfile_read = sys.stdout
+    p.expect('#')
+    if(self.bprev != ""):
+        p.sendline("disconnect " + self.bprev)
+        p.expect("#")
+    p.sendline("remove " +address)
+    p.sendline("scan on")
+    p.expect("#")
+    mylist = ["Discovery started","Failed to start discovery","Device "+address+" not available","Failed to connect","Connection successful"]
+    while response != "Connection successful":
+        p.expect(mylist)
+        response=p.after
+        p.sendline("connect "+address)
+        time.sleep(1)
+    self.bprev = address
+    p.sendline("quit")
+    p.close()
+
+def disconnect(self):
+    response = ''
+    p = pexpect.spawn('bluetoothctl',encoding='utf-8')
+    p.logfile_read = sys.stdout
+    p.expect('#')
+    if(self.bprev != ""):
+        p.sendline("disconnect " + self.bprev)
+        p.expect("#")
+        self.bprev = ""
+    else:
+        print("No Bluetooth Devices are connected")
+    p.sendline("quit")
+    p.close()
+		
+def scan(self):
+    termOut = pexpect.run('hcitool scan')
+    output = (termOut.decode('utf-8')).split("\r")
+    output.pop(0)
+    finalOut = []
+    for x in output:
+        x.replace('\n','')
+        finalOut.append(x.split("\t"))
+    devices = []
+    connections = []
+    for x in finalOut:
+        for y in x:
+            if y !="\n" and y != "n/a":
+                if len(y) == 17 and y[2] == ':' and y[5] == ':' and y[8] == ':' and y[11] == ':' and y[14] == ':':
+                    connections.append(y)
+                else:
+                    devices.append(y)
+        if(len(connections)>len(devices)):
+            connections.pop(len(connections)-1)
+        if(len(devices)>len(connections)):
+            devices.pop(len(devices)-1)
+    self.bdevices = devices
+    self.bmacs = connections
+    if(self.bdevices == []):
+    	self.bdevices = ["NONE"]
+    	self.bconnections = ["NONE"]
+
+def scanWifi(self):
+    command = '/bin/bash -c "sudo iw wlan0 scan | grep -Po \'(signal|SSID):\K.*\' | sed \'s/ $/ [unknown SSID]/\' | paste -d  - - | cut -c2- | sort -gr"'
+    #'nmcli device wifi list'
+    p = pexpect.spawn(command, encoding = 'utf-8')
+    p.logfile_read = sys.stdout
+    p.expect(pexpect.EOF, timeout=None)		
+    out = p.before
+    outList = out.split("\n")
+    listStart =int (len(outList)/2)
+    flist = []
+    for x in range(listStart):
+        temp = outList[x+listStart].replace('\r','')
+        temp = temp.replace('\t','')
+        flist.append(temp)
+    self.wdevices = flist
+    if(self.wdevices == []):
+    	self.wdevices = ["NONE"]
+
+def connectWifi(self):
+    prev = self.wcurrent
+    if(self.wcurrent != ""):
+        command = 'nmcli d wifi disconnect ' + prev[0]
+        pexpect.run(command)
+    password = self.wpass
+    command = 'nmcli -a d wifi connect ' + self.selectedW
+    p = pexpect.spawn(command, encoding = 'utf-8')
+    p.logfile_read = sys.stdout
+    p.expect("Password: ")
+    p.sendline(password)
+
+def disconnectWifi(self):
+    prev = self.wcurrent
+    command = 'nmcli d wifi disconnect ' + self.wcurrent
+    pexpect.run(command)
+
+def getWifis(self):
+    termOut = pexpect.run('iwgetid -r')
+    output = (termOut.decode('utf-8')).split("\r")
+    self.wcurrent = output[0]
+
+def startupWifi(self):
+    pexpect.run('nmcli radio wifi off')
+    time.sleep(3)
+    pexpect.run('nmcli radio wifi on')
+    time.sleep(8)
+
 
 if __name__ == "__main__":
     app = App()
