@@ -1,5 +1,6 @@
 import jetson_inference
 import jetson_utils
+import os
 
 from imutils import paths
 import imutils
@@ -55,3 +56,4 @@ while display.IsOpen():
 	for detection in detections:
 		print(net.GetClassDesc(detection.ClassID))
 		print(detection.Width)
+		os.system("mpg321 " + filepath + net.GetClassDesc(detection.ClassID) + ".mp3")
