@@ -23,7 +23,7 @@ class App(customtkinter.CTk):
 
         self.val = customtkinter.DoubleVar()
         self.slider = customtkinter.CTkSlider(master = self, from_=100, to=0, variable = self.val, command= lambda v: pexpect.run("amixer -D pulse sset Master " + str(int(self.val.get())) + "%"))
-        self.slider.place(relx = 1, rely = 1, anchor = tkinter.CENTER)
+        self.slider.place(relx = 0.5, rely = 0.5, anchor = tkinter.CENTER)
         self.slider.set(50)
 
         self.exit_button = customtkinter.CTkButton(self, text="Exit", command=self.destroy)
