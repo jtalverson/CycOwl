@@ -6,7 +6,7 @@ import pexpect
 import sys
 import time
 import wifi
-
+import subprocess
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -20,6 +20,7 @@ class App(customtkinter.CTk):
         self.bdevices = []
         self.bmacs = []
         self.bprev = ""
+        self.bprevSSID = ""
         self.selectedB = ""
         self.wdevices = []
         self.wpass = ""
@@ -91,6 +92,9 @@ class App(customtkinter.CTk):
         self.wifi_connect = customtkinter.CTkButton(master=self.wifi_frame, text = "Connect Wi-Fi" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command =lambda: callConnectWifi(self))
         self.wifi_connect.grid(row=6, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
+        self.wific_label = customtkinter.CTkLabel(self.wifi_frame, text="Connected Wifi: " + self.wcurrent, font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.wific_label.grid(row=7, column=1, padx=20, pady=(20, 10))
+
         #Bluetooth Frame
         self.blue_frame = customtkinter.CTkFrame(self,width = 100,corner_radius = 0)
         self.blue_frame.grid(row=0, column=2, rowspan=4, sticky="nsew")
@@ -105,6 +109,11 @@ class App(customtkinter.CTk):
 
         self.blue_connect = customtkinter.CTkButton(master=self.blue_frame, text = "Connect Bluetooth" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: callConnectBluetooth(self))
         self.blue_connect.grid(row=5, column=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        self.blue_disconnect = customtkinter.CTkButton(master=self.blue_frame, text = "Disconnect Bluetooth" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: disconnect(self))
+        self.blue_disconnect.grid(row=6, column=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
+
+        self.bluec_label = customtkinter.CTkLabel(self.blue_frame, text="Bluetooth Device: " + self.bprevSSID, font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.bluec_label.grid(row=7, column=2, padx=20, pady=(20, 10))
 
         #start zoom and ride
         self.final = customtkinter.CTkFrame(self, width=100, corner_radius=0)
@@ -115,13 +124,16 @@ class App(customtkinter.CTk):
         
         self.zoom_label = customtkinter.CTkLabel(self.final, text="Connect to Zoom:", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.zoom_label.grid(row=1, column=3, padx=20, pady=(20, 10))
-        self.zoom = customtkinter.CTkButton(master=self.final, text = "Connect to Zoom" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
+        self.zoom = customtkinter.CTkButton(master=self.final, text = "Connect to Zoom" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: join_zoom(self))
         self.zoom.grid(row=2, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
         self.ride_label = customtkinter.CTkLabel(self.final, text="Begin Ride:", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.ride_label.grid(row=3, column=3, padx=20, pady=(20, 10))
-        self.ride = customtkinter.CTkButton(master=self.final, text = "Start Ride" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
+        self.ride = customtkinter.CTkButton(master=self.final, text = "Start Ride" ,fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), command = lambda: start_ride(self))
         self.ride.grid(row=4, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+
+        self.finalc_label = customtkinter.CTkLabel(self.final, text="Zoom is off" , font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.finalc_label.grid(row=5, column=3, padx=20, pady=(20, 10))
 
     def open_input_dialog_event(self):
         dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
@@ -136,9 +148,6 @@ class App(customtkinter.CTk):
 
     def sidebar_button_event(self):
         print("sidebar_button click")
-
-    def Close(self):
-        self.destroy()
 
 def connect(self):
     index = self.bdevices.index(self.selectedB)
@@ -162,6 +171,7 @@ def connect(self):
         p.sendline("connect "+address)
         time.sleep(1)
     self.bprev = address
+    self.bprevSSID = name
     p.sendline("quit")
     p.close()
 
@@ -223,6 +233,7 @@ def scanWifi(self):
     self.wdevices = flist
     if(self.wdevices == []):
     	self.wdevices = ["NONE"]
+    p.close()
 
 def connectWifi(self):
     prev = self.wcurrent
@@ -235,6 +246,7 @@ def connectWifi(self):
     p.logfile_read = sys.stdout
     p.expect("Password:")
     p.sendline(password)
+    p.close()
 
 def disconnectWifi(self):
     prev = self.wcurrent
@@ -255,27 +267,43 @@ def startupWifi(self):
 def callUpdate(self):
     scan(self)
     scanWifi(self)
-    self.var.set('')
-    for string in self.bdevices:
-         self.blue_optionmenu.add_command(label = string, command = customtkinter.setit(self.var,string))
-    self.var.set('')
-    for string in self.wdevices:
-         self.wifi_optionmenu.add_command(label = string, command = customtkinter.setit(self.var,string))
+    self.blue_optionmenu.destroy()
+    self.wifi_optionmenu.destroy()
+    self.blue_optionmenu = customtkinter.CTkOptionMenu(self.blue_frame, values=self.bdevices)
+    self.blue_optionmenu.grid(row=3, column=2, padx=20, pady=(10, 10))
+    self.wifi_optionmenu = customtkinter.CTkOptionMenu(self.wifi_frame, values = self.wdevices)
+    self.wifi_optionmenu.grid(row=3, column=1, padx=20, pady=(10, 10))
 
 def callConnectBluetooth(self):
     self.selectedB = self.blue_optionmenu.get()
     connect(self)
+    self.bluec_label.destroy()
+    self.bluec_label = customtkinter.CTkLabel(self.blue_frame, text="Bluetooth Device: " + self.bprevSSID, font=customtkinter.CTkFont(size=20, weight="bold"))
+    self.bluec_label.grid(row=7, column=2, padx=20, pady=(20, 10))
 
 def callConnectWifi(self):
     self.selectedW = self.wifi_optionmenu.get()
     self.wpass = self.passentry.get()
     connectWifi(self)
+    self.wific_label.destroy()
+    self.wific_label = customtkinter.CTkLabel(self.wifi_frame, text="Connected Wifi: " + self.wcurrent, font=customtkinter.CTkFont(size=20, weight="bold"))
+    self.wific_label.grid(row=7, column=1, padx=20, pady=(20, 10))
 
 def callKey(self):
     command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false'
     pexpect.run(command)
     command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true'
     pexpect.run(command)
+
+def join_zoom(self):
+    self.zstart = "Yes"
+    subprocess.run(["python","testFull.py"])
+    self.finalc_label.destroy()
+    self.finalc_label = customtkinter.CTkLabel(self.final, text="Zoom Started", font=customtkinter.CTkFont(size=20, weight="bold"))
+    self.finalc_label.grid(row=5, column=3, padx=20, pady=(20, 10))
+
+def start_ride(self):
+    subprocess.run(["python","customTkinter.py"])
 
 if __name__ == "__main__":
     app = App()
