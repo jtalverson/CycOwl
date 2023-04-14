@@ -43,42 +43,23 @@
     ZoomMtg.prepareJssdk();
 
     const API_KEY = 'QSad0m5NQkq2XoeT8s8osw';
-    const API_SECRET = 'nouE624RlF7aXznFSIKvN6Yjb0x6244z';
 
-  async function generateSignature(meetingNumber, role) {
-  const timestamp = new Date().getTime() - 30000;
-  const msg = btoa(API_KEY + meetingNumber + timestamp + role);
-  
-  const encoder = new TextEncoder();
-  const dataToSign = encoder.encode(msg);
-  const key = encoder.encode(API_SECRET);
-  
-  const signatureBytes = await crypto.subtle.sign(
-    { name: "HMAC", hash: "SHA-256" },
-    await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]),
-    dataToSign
-  );
-  
-  const hashArray = Array.from(new Uint8Array(signatureBytes));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  const signature = btoa(`${API_KEY}.${meetingNumber}.${timestamp}.${role}.${hashHex}`);
-  
-  return signature;
-}
+    async function joinMeeting() {
+      const meetingNumber = document.getElementById('meeting-number').value;
+      const userName = document.getElementById('display-name').value;
+      const passWord = document.getElementById('meeting-password').value || '';
+      const role = 0;
 
+      const response = await fetch('/api/signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingNumber, role }),
+      });
 
-  document.getElementById('join-meeting-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const meetingNumber = document.getElementById('meeting-number').value;
-    const userName = document.getElementById('display-name').value;
-    const passWord = document.getElementById('meeting-password').value || '';
-    const role = 0;
-
-    const signature = await generateSignature(meetingNumber, role);
+      const { signature } = await response.json();
 
       ZoomMtg.init({
-        leaveUrl: 'https://localhost:3000',
+        leaveUrl: 'http://localhost:3000',
         isSupportAV: true,
         success: function() {
           ZoomMtg.join({
@@ -100,8 +81,12 @@
           console.log(res);
         }
       });
+    }
+
+    document.getElementById('join-meeting-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      await joinMeeting();
     });
   </script>
 </body>
 </html>
-
