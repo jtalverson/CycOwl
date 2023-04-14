@@ -1,0 +1,5 @@
+bus, 144.0
+car, 72.0
+stop light, 16.0
+stop sign, 15.0
+person, 8.0
