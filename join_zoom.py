@@ -6,12 +6,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-meet_code = 4062239841
+meet_code = 8174831944
 
 driver = webdriver.Chrome() # create web driver
 actions = ActionChains(driver)
 
-driver.get('https://zoom.us/wc/join/' + str(meet_code) + '?from=join')
+driver.get('https://zoom.us/wc/' + str(meet_code) + '/start')
 # driver.fullscreen_window()
 
 el = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='nameInfo']"))
