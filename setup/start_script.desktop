@@ -1,6 +1,7 @@
-# place in .config/autostart
+# place in ~/.config/autostart
 [Desktop Entry]
 Name=Launch Script on Desktop
-Exec=/home/capstone/tkinter_basic.py
+Exec=/bin/sh -c 'python3.6 /home/capstone/CycOwl/detection/speech_distance_detection.py'
+Hidden=false
 Terminal=true
 Type=Application
