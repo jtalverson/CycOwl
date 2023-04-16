@@ -72,7 +72,15 @@ os.system("pacmd set-default-sink alsa_output.usb-Solid_State_System_Co._Ltd._US
 
 control = True
 full_allow_path = long_path + "process.txt"
+os.system("echo false > " + full_allow_path)
+first_time = True
 while control:
+	if first_time:
+		img, width, height = camera.CaptureRGBA()
+		detections = net.Detect(img, width, height)
+		display.Render(img)
+		first_time = False
+
 	if not display.IsStreaming():
 		control = False
 
@@ -84,15 +92,15 @@ while control:
 				startProcessing = True
 
 	if not startProcessing:
-		img, width, height = camera.CaptureRGBA()	
+		img, width, height = camera.CaptureRGBA()
 		display.Render(img)
 		display.SetStatus("Detection not started")
 		print ("Not yet processing")
-		time.sleep(.5)
+		time.sleep(1.5)
 	else:
 		img, width, height = camera.CaptureRGBA()
+		detections = net.Detect(img, width, height) #,overlay="none")
 		display.Render(img)
-		detections = net.Detect(img, width, height)	
 		display.SetStatus("Object Detection | Network: {:0f} FPS".format(net.GetNetworkFPS()))
 
 		# If there are no objects detected in the current frame
@@ -103,7 +111,7 @@ while control:
 				for line in speakControl.readlines():
 					if line.strip() == "true":
 						isTalking = True
-			print(isTalking)
+			# print(isTalking)
 			# Pull any warnings off of the warning stack
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
@@ -129,9 +137,9 @@ while control:
 				for line in speakControl.readlines():
 					if line.strip() == "true":
 						isTalking = True
-			print(isTalking)
+			# print(isTalking)
 
-			print ("Close %s Time %s Talking %s" % (closeEnough, enoughTime, isTalking))
+			# print ("Close %s Time %s Talking %s" % (closeEnough, enoughTime, isTalking))
 
 			name = os.path.join(mp3_path, currentLabel + ".mp3")
 			# print(name)
@@ -143,7 +151,7 @@ while control:
 			elif os.path.isfile(name) and closeEnough and enoughTime and not isTalking:
 				allSubprocesses[currentLabel] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", currentLabel])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
-			
+
 			if os.path.isfile(name)  and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
 				warningStack.append(currentLabel)
 

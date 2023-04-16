@@ -2,6 +2,10 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 import pexpect
+import getpass
+import os
+
+long_path = "/home/" + getpass.getuser() + "/CycOwl/"
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -26,8 +30,12 @@ class App(customtkinter.CTk):
         self.slider.place(relx = 0.5, rely = 0.5, anchor = tkinter.CENTER)
         self.slider.set(50)
 
-        self.exit_button = customtkinter.CTkButton(self, text="Exit", command=self.destroy)
+        self.exit_button = customtkinter.CTkButton(self, text="Exit", command=lambda: callClose(self))
         self.exit_button.grid(row = 4, column = 4, padx = 20, pady = (20 , 10))
+
+def callClose(self):
+	os.system("echo false > \"" + long_path + "detection/process.txt\"")
+	self.destroy()
 
 def vol(self):
         command = "amixer -D pulse sset Master " + str(int(self.val.get())) + "%"

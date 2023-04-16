@@ -7,6 +7,9 @@ import sys
 import time
 import wifi
 import subprocess
+import getpass
+
+long_path = "/home/" + getpass.getuser() + "/CycOwl/"
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -308,13 +311,15 @@ def callKey(self):
 
 def join_zoom(self):
     self.zstart = "Yes"
-    subprocess.run(["python","testFull.py"])
+    subprocess.Popen(["python3.6","CycOwl/join_zoom.py"])
     self.finalc_label.destroy()
     self.finalc_label = customtkinter.CTkLabel(self.final, text="Zoom Started", font=customtkinter.CTkFont(size=20, weight="bold"))
     self.finalc_label.grid(row=3, column=3, padx=20, pady=(20, 10))
 
 def start_ride(self):
-    subprocess.run(["python","customTkinter.py"])
+    subprocess.Popen(["python","CycOwl/customTkinter.py"])
+    os.system("echo true > \"" + long_path + "detection/process.txt\"")
+    print ("echo true > \"" + long_path + "detection/process.txt\"")
 
 def callClose(self):
     disconnect(self)
