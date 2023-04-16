@@ -40,6 +40,8 @@ class App(customtkinter.CTk):
         scanWifi(self)
         getWifis(self)
 
+	os.system("echo true > \"" + long_path + "loading.txt\"")
+
         self.var = customtkinter.StringVar(self)
 
         # configure grid layout (4x4)
@@ -323,6 +325,7 @@ def start_ride(self):
 
 def callClose(self):
     disconnect(self)
+    os.system("echo false > \"" + long_path + "loading.txt\"")
     self.destroy()
 
 if __name__ == "__main__":
