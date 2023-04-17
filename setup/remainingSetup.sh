@@ -49,3 +49,13 @@ then
 else
 	echo $'\nBluetooth configured'
 fi
+
+echo $'\nConfiguring startup scripts'
+mkdir ~/.config/autostart
+cp *.desktop ~/.config/autostart
+
+echo $'\nActivating fan service'
+sudo cp start_fan.service /etc/systemd/system/
+sudo chmod 664 /etc/systemd/system/start_fan.service
+sudo systemctl daemon-reload
+sudo systemctl enable start_fan.service

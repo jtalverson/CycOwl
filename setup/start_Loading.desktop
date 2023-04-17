@@ -1,7 +1,7 @@
 # place in ~/.config/autostart
 [Desktop Entry]
 Name=Launch Script on Desktop
-Exec=/bin/sh -c 'python3.6 /home/capstone/CycOwl/detection/speech_distance_detection.py'
+Exec=/bin/sh -c "python /home/$USER/CycOwl/realStartup.py"
 Hidden=false
 Terminal=true
 Type=Application

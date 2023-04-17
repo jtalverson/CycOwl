@@ -1,7 +1,7 @@
 # place in ~/.config/autostart
 [Desktop Entry]
 Name=Launch Script on Desktop
-Exec=/bin/sh -c 'python /home/capstone/CycOwl/startup.py'
+Exec=/bin/sh -c "python /home/$USER/CycOwl/startup.py"
 Hidden=false
 Terminal=true
 Type=Application
