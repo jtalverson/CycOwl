@@ -14,10 +14,22 @@ echo $'\nEnsuring correct python version:'
 python -V
 echo $'\nUpgrading pip:'
 ~/.pyenv/versions/3.10.0/bin/python -m pip install --upgrade pip
+
 echo $'\nBeginning necessary library installation:'
 python -m pip install wheel
 python -m pip install pexpect
 python -m pip install wifi
 python -m pip install customtkinter
 python -m pip install kivy
+python -m pip install --upgrade pip
+python -m pip install --upgrade Pillow
 
+if cat /lib/systemd/system/bluetooth.service.d/nv-bluetooth-service.conf | grep -q "noplugin"
+then
+	echo $'\nConfiguring Bluetooth'
+	sudo cp nv-bluetooth-service.conf /lib/systemd/system/bluetooth.service.d
+	sudo systemctl daemon-reload
+	sudo systemctl restart bluetooth
+else
+	echo $'\nBluetooth configured'
+fi

@@ -32,7 +32,7 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Startup.py")
-        self.attributes('-fullscreen', True)
+        #self.attributes('-fullscreen', True)
        #self.attributes('-topmost', True)
 
         startupWifi(self)
@@ -138,6 +138,8 @@ class App(customtkinter.CTk):
         self.ride_label.grid(row=4, column=3, padx=20, pady=(20, 10))
         self.ride = customtkinter.CTkButton(master=self.final, text = "Start Ride", border_width=2, command = lambda: start_ride(self))
         self.ride.grid(row=5, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+
+        os.system("echo true > \"" + long_path + "loading.txt\"")
 
 
     def open_input_dialog_event(self):
@@ -323,6 +325,7 @@ def start_ride(self):
 
 def callClose(self):
     disconnect(self)
+    os.system("echo false > \"" + long_path + "loading.txt\"")
     self.destroy()
 
 if __name__ == "__main__":
