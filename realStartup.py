@@ -9,7 +9,6 @@ from PIL import Image
 
 long_path = "/home/" + getpass.getuser() + "/CycOwl/"
 
-count = 0
 delay_ms = 750
 
 class App(customtkinter.CTk):
@@ -20,9 +19,7 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Loading Screen")
-        #self.geometry(f"{800}x{480}")
-        #self.attributes('-topmost', True)
-        #self.attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         self.attributes('-topmost', True)
 
         # configure grid layout (4x4)
@@ -43,8 +40,11 @@ class App(customtkinter.CTk):
         image_holder = customtkinter.CTkButton(self.sidebar_frame, image=cyc_owl, text=None, height=image_size, width=image_size, fg_color=("#DBDBDB", "#2B2B2B"), hover=False)
         image_holder.place(relx=.5, rely=.4, anchor=tkinter.CENTER)
 
-        #if not self.attributes('-fullscreen'):
-            #self.attributes('-fullscreen', True)
+        self.exit_button = customtkinter.CTkButton(self.sidebar_frame, text="Exit", width=70, border_width=2, command= lambda: callClose(self))
+        self.exit_button.place(relx=.09, rely=.9, anchor=tkinter.CENTER)
+
+        if not self.attributes('-fullscreen'):
+            self.attributes('-fullscreen', True)
 
 def checkLoading():
     print("CHECKING")
@@ -61,7 +61,11 @@ def checkLoading():
         app.loading_label.configure(text="Loading..")
     elif app.loading_label.cget("text") == "Loading..":
         app.loading_label.configure(text="Loading...")
+
     app.after(delay_ms, checkLoading)
+
+def callClose(self):
+    self.destroy()
 
 if __name__ == "__main__":
     app = App()

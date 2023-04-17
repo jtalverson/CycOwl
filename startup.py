@@ -9,6 +9,8 @@ import wifi
 import subprocess
 import getpass
 
+delay_ms = 750
+
 long_path = "/home/" + getpass.getuser() + "/CycOwl/"
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -32,8 +34,8 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Startup.py")
-        #self.attributes('-fullscreen', True)
-       #self.attributes('-topmost', True)
+        self.attributes('-fullscreen', True)
+        self.attributes('-topmost', True)
 
         startupWifi(self)
         scan(self)
@@ -139,7 +141,10 @@ class App(customtkinter.CTk):
         self.ride = customtkinter.CTkButton(master=self.final, text = "Start Ride", border_width=2, command = lambda: start_ride(self))
         self.ride.grid(row=5, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
-        os.system("echo true > \"" + long_path + "loading.txt\"")
+        if not self.attributes("-fullscreen"):
+            self.attributes('-fullscreen', True)
+
+        os.system("echo true > " + long_path + "loading.txt")
 
 
     def open_input_dialog_event(self):
@@ -320,14 +325,20 @@ def join_zoom(self):
 
 def start_ride(self):
     subprocess.Popen(["python","CycOwl/customTkinter.py"])
-    os.system("echo true > \"" + long_path + "detection/process.txt\"")
-    print ("echo true > \"" + long_path + "detection/process.txt\"")
+    os.system("echo true > " + long_path + "detection/process.txt")
+    print ("echo true > " + long_path + "detection/process.txt")
 
 def callClose(self):
     disconnect(self)
-    os.system("echo false > \"" + long_path + "loading.txt\"")
+    os.system("echo false > " + long_path + "loading.txt")
     self.destroy()
+
+def enforceFull():
+    if not self.attributes("-fullscreen"):
+        self.attributes('-fullscreen', True)
+    app.after(delay_ms, enforceFull)
 
 if __name__ == "__main__":
     app = App()
+    app.after(delay_ms, enforceFull)
     app.mainloop()

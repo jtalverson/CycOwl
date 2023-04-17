@@ -6,16 +6,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+import getpass
 
 chrome_options = Options()
 chrome_options.add_argument("--disable-notifications")
 chrome_options.add_experimental_option('prefs',{'profile.default_content_setting_values.media_stream_mic':1})
 
 
-
 meet_code = 8174831944
 
-driver = webdriver.Chrome(r'C:\Users\Drew\Documents\GitHub\CycOwl\chromedriver.exe', options=chrome_options) # create web driver
+long_path = "/home/" + getpass.getuser() + "/CycOwl/"
+driver = webdriver.Chrome(options=chrome_options) # create web driver
 actions = ActionChains(driver)
 
 driver.get('https://zoom.us/wc/' + str(meet_code) + '/start')
