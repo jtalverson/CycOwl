@@ -5,47 +5,53 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+
+chrome_options = Options()
+chrome_options.add_argument("--disable-notifications")
+chrome_options.add_experimental_option('prefs',{'profile.default_content_setting_values.media_stream_mic':1})
+
+
 
 meet_code = 8174831944
 
-driver = webdriver.Chrome() # create web driver
+driver = webdriver.Chrome(r'C:\Users\Drew\Documents\GitHub\CycOwl\chromedriver.exe', options=chrome_options) # create web driver
 actions = ActionChains(driver)
 
 driver.get('https://zoom.us/wc/' + str(meet_code) + '/start')
 # driver.fullscreen_window()
 
-el = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='nameInfo']"))
+
+el = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='app']/div/div[2]/div/div[2]/div/div/a[3]"))
 sleep(2)
 driver.execute_script("arguments[0].scrollIntoView(true);", el)
-list = driver.find_elements_by_xpath("//*[@id='onetrust-banner-sdk']/div/div/div[1]/button")
-if len(list) > 0:
-    list[0].click()
+el.click()
 sleep(2)
-name = 'Jetson'
-driver.find_element_by_xpath("//input[@id='inputname']").send_keys(name)
-sleep(2)
-driver.find_element_by_xpath("//*[@id='joinBtn']").click()
+emailEL= driver.find_element(By.XPATH, "//*[@id='identifierId']")
+emailEL.click()
+gmail = 'cycowlnano@gmail.com'
+emailEL.send_keys(gmail)
+emailEL.send_keys(Keys.RETURN)
 
-el = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@label='join audio']"))
+sleep(2)
+password = 'cap2023!'
+passEL= driver.find_element(By.XPATH, "//*[@id='password']/div[1]/div/div[1]/input")
+passEL.click()
+passEL.send_keys(password)
+passEL.send_keys(Keys.RETURN)
+
+
+
+
+audiojoin = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='voip-tab']/div/button"))
 print("found join audio button at ")
-print(el.location)
-el.click()
-sleep(2)
-el = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@label='unmute my microphone']"))
-print("found mute button at ")
-print(el.location)
-el.click()
-
-driver.find_element_by_xpath("//*[@id='sharing-entry-button-container-dropdown']").click()
+print(audiojoin.location)
+audiojoin.click()
 
 
-#sleep(5)
-#driver.find_element_by_xpath("//input[@id='join-confno']").send_keys(meet_code)
-#sleep(2)
-#driver.find_element_by_xpath("//*[@id='onetrust-banner-sdk']/div/div/div[1]/button").click()
-#sleep(2)
-#driver.find_element_by_xpath("//a[@id='btnSubmit']").click()
-#sleep(5)
-# driver.find_element_by_xpath("//*[@id='zoom-ui-frame']/div[2]/div/div[1]/div").send_keys(Keys.ENTER)
-#actions.send_keys(Keys.ENTER)
-#actions.perform()
+screenshare = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='sharing-entry-button-container-dropdown']"))
+screenshare.click()
+
+window = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.Text, "//*[@id='sharing-entry-button-container-dropdown']"))
+
+
