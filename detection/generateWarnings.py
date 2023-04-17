@@ -15,11 +15,11 @@ if not os.path.isdir(allMP3s):
 
 speechWarnings = {}
 
-with open(long_path + "warnings.txt") as allWarnings:
+with open(long_path + "allLabelData.txt") as allWarnings:
 	warnings = allWarnings.readlines()
 	for warning in warnings:
-		currentSplit = warning.split(',')
-		speechWarnings[currentSplit[0]] = currentSplit[1].strip()
+		currentSplit = warning.split(';')
+		speechWarnings[currentSplit[0]] = currentSplit[1]
 
 # print (speechWarnings)
 for speech in speechWarnings:

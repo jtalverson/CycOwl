@@ -1,12 +1,14 @@
 #!/bin/bash
 
-echo 'Editing sudoers file to allow for all functions to occur without password entry'
-echo 'Please enter you password once now'
 if sudo grep -q "NOPASSWD" /etc/sudoers
 then
 	echo 'User already has sudo permissions'
 else
-	sudo sed 's/%sudo	ALL=(ALL:ALL) ALL/%sudo	ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers | (sudo EDITOR='tee' visudo)
+	echo 'Adding permissions'
+	sudo echo '$USER All=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+	echo 'sudoers will open now. Replace $USER with your name'
+	read -p 'Press enter to continue';echo
+	sudo visudo -f /etc/sudoers
 fi
 
 echo Installing necessary libraries for pyenv
@@ -35,4 +37,4 @@ else
 	cat ./profileLines.txt >> ~/.profile
 fi
 
-exec ./remainingSetup.sh
+exec $SHELL

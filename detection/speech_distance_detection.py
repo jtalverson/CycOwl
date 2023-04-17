@@ -31,12 +31,12 @@ print("Generating warnings...")
 os.system("python " + long_path + "generateWarnings.py")
 print("Done!")
 
-with open(long_path + "objectWidths_Distances.txt") as allWidthsDistances:
+with open(long_path + "allLabelData.txt") as allWidthsDistances:
 	data = allWidthsDistances.readlines()
 	for entry in data:
-		currentSplit = entry.split(',')
-		objectWidths[currentSplit[0]] = float(currentSplit[1])
-		warnDistance[currentSplit[0]] = float(currentSplit[2].strip())
+		currentSplit = entry.split(';')
+		objectWidths[currentSplit[0]] = float(currentSplit[2])
+		warnDistance[currentSplit[0]] = float(currentSplit[3].strip())
 
 print (objectWidths)
 

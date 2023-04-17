@@ -1,6 +1,0 @@
-bus, 144.0, 30
-car, 72.0, 30
-truck, 72.0, 30
-traffic light, 16.0, 30
-stop sign, 15.0, 20
-person, 20.0, 20

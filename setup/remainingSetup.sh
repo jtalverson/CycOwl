@@ -24,6 +24,22 @@ python -m pip install kivy
 python -m pip install --upgrade pip
 python -m pip install --upgrade Pillow
 
+python3.6 -m pip install gtts
+python3.6 -m pip install imutils
+python3.6 -m pip install pexpect
+python3.6 -m pip install gTTS
+
+sudo apt-get install git cmake libpython3-dev python3-numpy mpg321
+cd ~
+git clone --recursive https://github.com/dusty-nv/jetson-inference
+cd jetson-inference
+mkdir build
+cd build
+cmake ../
+make
+sudo make install
+sudo ldconfig
+
 if cat /lib/systemd/system/bluetooth.service.d/nv-bluetooth-service.conf | grep -q "noplugin"
 then
 	echo $'\nConfiguring Bluetooth'

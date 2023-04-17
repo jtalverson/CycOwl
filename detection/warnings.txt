@@ -1,6 +1,0 @@
-bus, Bus ahead. Approach with caution!
-car, Car ahead. Approach with caution!
-truck, Truck ahead. Approach with caution!
-traffic light, Stop light detected. Pay attention!
-stop sign, Stop sign detected. Slow down.
-person, Pedestrian detected. Please be aware.
