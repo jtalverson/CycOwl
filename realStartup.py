@@ -43,8 +43,8 @@ class App(customtkinter.CTk):
         self.exit_button = customtkinter.CTkButton(self.sidebar_frame, text="Exit", width=70, border_width=2, command= lambda: callClose(self))
         self.exit_button.place(relx=.09, rely=.9, anchor=tkinter.CENTER)
 
-        #if not self.attributes('-fullscreen'):
-            #self.attributes('-fullscreen', True)
+        if not self.attributes('-fullscreen'):
+            self.attributes('-fullscreen', True)
 
 def checkLoading():
     print("CHECKING")
