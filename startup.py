@@ -141,8 +141,8 @@ class App(customtkinter.CTk):
         self.ride = customtkinter.CTkButton(master=self.final, text = "Start Ride", border_width=2, command = lambda: start_ride(self))
         self.ride.grid(row=5, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
-        if not self.attributes("-fullscreen"):
-            self.attributes('-fullscreen', True)
+        #if not self.attributes("-fullscreen"):
+            #self.attributes('-fullscreen', True)
 
         os.system("echo true > " + long_path + "loading.txt")
 
@@ -334,8 +334,8 @@ def callClose(self):
     self.destroy()
 
 def enforceFull():
-    if not self.attributes("-fullscreen"):
-        self.attributes('-fullscreen', True)
+    if not app.attributes("-fullscreen"):
+        app.attributes('-fullscreen', True)
     app.after(delay_ms, enforceFull)
 
 if __name__ == "__main__":
