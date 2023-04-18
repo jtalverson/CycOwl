@@ -12,18 +12,18 @@ import time
 import getpass
 import pexpect
 
-objectWidths = {}
-
 warningStack = list()
 timeBetweenWarnings = 15
 lastWarnTime = {}
 
+warnings = {}
+objectWidths = {}
 warnDistance = {}
 
 allSubprocesses = {}
 
 long_path = "/home/" + getpass.getuser() + "/CycOwl/detection/"
-print (long_path)
+print(long_path)
 
 mp3_path = long_path + "allMP3s/"
 
@@ -35,14 +35,15 @@ with open(long_path + "allLabelData.txt") as allWidthsDistances:
 	data = allWidthsDistances.readlines()
 	for entry in data:
 		currentSplit = entry.split(';')
+		warnings[currentSplit[0]] = currentSplit[1]
 		objectWidths[currentSplit[0]] = float(currentSplit[2])
 		warnDistance[currentSplit[0]] = float(currentSplit[3].strip())
 
-print (objectWidths)
+print(objectWidths)
 
 for key in objectWidths:
 	lastWarnTime[key] = time.time()
-print (lastWarnTime)
+print(lastWarnTime)
 
 def find_marker(image):
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -62,13 +63,19 @@ image = cv2.imread(long_path + "2ft_d_8in_w.jpg")
 marker = find_marker(image)
 focalLength = (marker[1][0] * KNOWN_DISTANCE) / BASE_WIDTH
 
-print (focalLength)
+print(focalLength)
 
 net = jetson_inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
 camera = jetson_utils.gstCamera(1280, 720, "0")
 display = jetson_utils.videoOutput("display://0")
 
 os.system("pacmd set-default-sink alsa_output.usb-Solid_State_System_Co._Ltd._USB_PnP_Audio_Device_000000000000-00.analog-stereo")
+
+# Setup for text on screen
+start_time = time.time()
+record_start_time = True
+font = jetson_utils.cudaFont(size=32)
+warningText = ""
 
 control = True
 full_allow_path = long_path + "process.txt"
@@ -95,16 +102,23 @@ while control:
 		img, width, height = camera.CaptureRGBA()
 		display.Render(img)
 		display.SetStatus("Detection not started")
-		print ("Not yet processing")
+		print("Not yet processing")
+		record_start_time = True
 		time.sleep(1.5)
 	else:
+		if record_start_time:
+			start_time = time.time()
+			record_start_time = False
+
 		img, width, height = camera.CaptureRGBA()
 		detections = net.Detect(img, width, height) #,overlay="none")
+		font.OverlayText(img, width, height, str(time.time() - start_time), 5, 5)
+		font.OverlayText(img, width, height, warningText, 5, 15)
 		display.Render(img)
 		display.SetStatus("Object Detection | Network: {:0f} FPS".format(net.GetNetworkFPS()))
 
 		# If there are no objects detected in the current frame
-		if (len(detections) == 0):
+		if len(detections) == 0:
 			# Update the is talking variable
 			isTalking = False
 			with open(long_path + "currentlySpeaking.txt") as speakControl:
@@ -117,6 +131,7 @@ while control:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
 				warningStack.remove(warningStack[0])
+				warningText = "Last warning: \"" + warnings[warningStack[0]] + "\" at " + str(time.time() - start_time)
 
 		for detection in detections:
 			currentLabel = net.GetClassDesc(detection.ClassID)
@@ -148,11 +163,13 @@ while control:
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
 				warningStack.remove(warningStack[0])
 				isTalking = True
+				warningText = "Last warning: \"" + warnings[warningStack[0]] + "\" at " + str(time.time() - start_time)
 			elif os.path.isfile(name) and closeEnough and enoughTime and not isTalking:
 				allSubprocesses[currentLabel] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", currentLabel])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
+				warningText = "Last warning: \"" + warnings[currentLabel] + "\" at " + str(time.time() - start_time)
 
-			if os.path.isfile(name)  and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
+			if os.path.isfile(name) and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
 				warningStack.append(currentLabel)
 
 os.system("echo false > " + long_path + "currentlySpeaking.txt")
