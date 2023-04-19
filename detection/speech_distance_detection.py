@@ -74,14 +74,13 @@ os.system("pacmd set-default-sink alsa_output.usb-Solid_State_System_Co._Ltd._US
 # Setup for text on screen
 start_time = time.time()
 record_start_time = True
-font = jetson_utils.cudaFont(size=32)
+font = jetson_utils.cudaFont(size=26)
 warningText = ""
 
-control = True
 full_allow_path = long_path + "process.txt"
 os.system("echo false > " + full_allow_path)
 first_time = True
-while control:
+while True:
 	if first_time:
 		img, width, height = camera.CaptureRGBA()
 		detections = net.Detect(img, width, height)
@@ -89,7 +88,7 @@ while control:
 		first_time = False
 
 	if not display.IsStreaming():
-		control = False
+		break
 
 	startProcessing = False
 	with open(full_allow_path) as allow:
@@ -107,13 +106,14 @@ while control:
 		time.sleep(1.5)
 	else:
 		if record_start_time:
+			warningText = "No hazards detected yet."
 			start_time = time.time()
 			record_start_time = False
 
 		img, width, height = camera.CaptureRGBA()
 		detections = net.Detect(img, width, height) #,overlay="none")
-		font.OverlayText(img, width, height, str(time.time() - start_time), 5, 5)
-		font.OverlayText(img, width, height, warningText, 5, 15)
+		font.OverlayText(img, width, height, str(round(time.time() - start_time, 2)), 5, 5)
+		font.OverlayText(img, width, height, warningText, 5, 675)
 		display.Render(img)
 		display.SetStatus("Object Detection | Network: {:0f} FPS".format(net.GetNetworkFPS()))
 
@@ -130,8 +130,8 @@ while control:
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
+				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + str(round(time.time() - start_time, 2))
 				warningStack.remove(warningStack[0])
-				warningText = "Last warning: \"" + warnings[warningStack[0]] + "\" at " + str(time.time() - start_time)
 
 		for detection in detections:
 			currentLabel = net.GetClassDesc(detection.ClassID)
@@ -161,13 +161,13 @@ while control:
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
+				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + str(round(time.time() - start_time, 2))
 				warningStack.remove(warningStack[0])
 				isTalking = True
-				warningText = "Last warning: \"" + warnings[warningStack[0]] + "\" at " + str(time.time() - start_time)
 			elif os.path.isfile(name) and closeEnough and enoughTime and not isTalking:
 				allSubprocesses[currentLabel] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", currentLabel])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
-				warningText = "Last warning: \"" + warnings[currentLabel] + "\" at " + str(time.time() - start_time)
+				warningText = "Last warning: \"" + warnings[currentLabel][1:] + "\" at " + str(round(time.time() - start_time, 2))
 
 			if os.path.isfile(name) and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
 				warningStack.append(currentLabel)

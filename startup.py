@@ -38,7 +38,7 @@ class App(customtkinter.CTk):
         self.attributes('-fullscreen', True)
         self.attributes('-topmost', True)
 
-        startupWifi(self)
+        #startupWifi(self)
         scan(self)
         scanWifi(self)
         getWifis(self)
@@ -284,7 +284,8 @@ def connectWifi(self):
         command = 'nmcli d wifi disconnect ' + prev[0]
         pexpect.run(command)
     password = self.wpass
-    command = 'nmcli -a d wifi connect ' + self.selectedW
+    command = 'nmcli -a d wifi connect \"' + self.selectedW + "\""
+    print(command)
     p = pexpect.spawn(command, encoding='utf-8')
     p.logfile_read = sys.stdout
     p.expect("Password: ")
@@ -309,9 +310,9 @@ def getWifis(self):
 
 def startupWifi(self):
     pexpect.run('nmcli radio wifi off')
-    time.sleep(3)
+    time.sleep(.5)
     pexpect.run('nmcli radio wifi on')
-    time.sleep(8)
+    time.sleep(2)
 
 
 def callUpdate(self):
@@ -349,8 +350,9 @@ def callConnectWifi(self):
 def callKey(self):
     command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false'
     pexpect.run(command)
+    time.sleep(.5)
     command = 'gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true'
-    pexpect.run(command)
+    os.system(command)
 
 
 def join_zoom(self):

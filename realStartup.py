@@ -62,6 +62,9 @@ def checkLoading():
     elif app.loading_label.cget("text") == "Loading..":
         app.loading_label.configure(text="Loading...")
 
+    if not app.attributes("-fullscreen"):
+        app.attributes('-fullscreen', True)
+
     app.after(delay_ms, checkLoading)
 
 def callClose(self):
