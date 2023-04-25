@@ -4,15 +4,7 @@ truck; Truck ahead. Approach with caution!; 180; 60
 traffic light; Stop light detected. Pay attention!; 12.0; 60
 stop sign; Stop sign detected. Slow down.; 30.0; 60
 person; Pedestrian detected. Please be aware.; 20.0; 60
-giraffe; Animal detected. Proceed with caution!; 84.0; 60
-bear; Animal detected. Proceed with caution!; 60.0; 60
-dog; Animal detected. Proceed with caution!; 24.0; 60
-cat; Animal detected. Proceed with caution!; 12.0; 60
-sheep; Animal detected. Proceed with caution!; 60.0; 60
-horse; Animal detected. Proceed with caution!; 84.0; 60
-cow; Animal detected. Proceed with caution!; 84.0; 60
-elephant; Animal detected. Proceed with caution!; 400.0; 60
-zebra; Animal detected. Proceed with caution!; 72.0; 60
-bird; Animal detected. Proceed with caution!; 4.0; 60
+dog; Dog detected. Proceed with caution!; 24.0; 60
+cat; Cat detected. Proceed with caution!; 12.0; 60
 fire hydrant; Fire hydrant detected!; 13.0; 30
 bench; Bench ahead. Stay on path!; 48; 30

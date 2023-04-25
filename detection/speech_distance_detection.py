@@ -11,6 +11,17 @@ import cv2
 import time
 import getpass
 import pexpect
+import shelve
+
+program_start = time.time()
+frames_processed = 0
+
+image_mod = .55
+x_res = 1280
+y_res = 720
+font_size = 38
+initial_size = 55
+initial_x = 350
 
 warningStack = list()
 timeBetweenWarnings = 15
@@ -24,6 +35,8 @@ allSubprocesses = {}
 
 long_path = "/home/" + getpass.getuser() + "/CycOwl/detection/"
 print(long_path)
+
+shelf_path = long_path[:-10] + "shelf/shelf"
 
 mp3_path = long_path + "allMP3s/"
 
@@ -66,71 +79,95 @@ focalLength = (marker[1][0] * KNOWN_DISTANCE) / BASE_WIDTH
 print(focalLength)
 
 net = jetson_inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
-camera = jetson_utils.gstCamera(1280, 720, "0")
-display = jetson_utils.videoOutput("display://0")
-
-os.system("pacmd set-default-sink alsa_output.usb-Solid_State_System_Co._Ltd._USB_PnP_Audio_Device_000000000000-00.analog-stereo")
+camera = jetson_utils.gstCamera(x_res, y_res, "0")
+display = jetson_utils.glDisplay(width=704, height=396)
 
 # Setup for text on screen
 start_time = time.time()
 record_start_time = True
-font = jetson_utils.cudaFont(size=26)
+font = jetson_utils.cudaFont(size=font_size)
+initial_font = jetson_utils.cudaFont(size=initial_size)
+initialText = "Ride has not begun"
 warningText = ""
 
 full_allow_path = long_path + "process.txt"
 os.system("echo false > " + full_allow_path)
 first_time = True
-while True:
+control = False
+while display.IsOpen() and not control:
+	shelf = shelve.open(shelf_path)
+	processing = shelf["processing"]
+	isTalking = shelf["talking"]
+	control = shelf["stop"]
+	shelf.close()
+	print(processing, isTalking, control)
+
+	currentTime = (time.time() - program_start) / 3600
+	os.system("echo " + str(currentTime) + " > " + long_path + "batteryTest.txt")
+	os.system("echo " + str(frames_processed) + " >> " + long_path + "batteryTest.txt")	
+
 	if first_time:
 		img, width, height = camera.CaptureRGBA()
 		detections = net.Detect(img, width, height)
-		display.Render(img)
+		display.RenderOnce(img, x=0, y=0)
 		first_time = False
+		# Update shelf so UI knows vision is running
+		shelf = shelve.open(shelf_path)
+		shelf["vision_down"] = False
+		shelf.close()
 
-	if not display.IsStreaming():
-		break
-
-	startProcessing = False
-	with open(full_allow_path) as allow:
-		allowance = allow.readlines()
-		for line in allowance:
-			if line.strip() == "true":
-				startProcessing = True
-
-	if not startProcessing:
+	if not processing:
+		warningStack.clear()
 		img, width, height = camera.CaptureRGBA()
-		display.Render(img)
-		display.SetStatus("Detection not started")
+		initial_font.OverlayText(img, width, height, initialText, initial_x, 330, font.Black, font.White)
+
+		imgOutput = jetson_utils.cudaAllocMapped(width=img.width * image_mod, 
+                                         height=img.height * image_mod, 
+                                         format=img.format)
+
+		jetson_utils.cudaResize(img, imgOutput)
+		display.RenderOnce(imgOutput, x=0, y=0)
+		display.SetTitle("Detection not started")
 		print("Not yet processing")
 		record_start_time = True
 		time.sleep(1.5)
 	else:
+		frames_processed += 1
 		if record_start_time:
 			warningText = "No hazards detected yet."
 			start_time = time.time()
 			record_start_time = False
 
 		img, width, height = camera.CaptureRGBA()
+
 		detections = net.Detect(img, width, height) #,overlay="none")
-		font.OverlayText(img, width, height, str(round(time.time() - start_time, 2)), 5, 5)
-		font.OverlayText(img, width, height, warningText, 5, 675)
-		display.Render(img)
-		display.SetStatus("Object Detection | Network: {:0f} FPS".format(net.GetNetworkFPS()))
+		overlay_time = round(time.time() - start_time)
+		seconds = overlay_time % 60
+		minutes = int(overlay_time / 60)
+		hours = int(overlay_time / 3600)
+		time_string = str(hours) + ":" + str(minutes) + ":" + str(seconds)
+		print(time_string)
+		font.OverlayText(img, width, height, time_string, 5, 5, font.Black, font.White)
+		font.OverlayText(img, width, height, warningText, 5, 675, font.Black, font.White)
+
+		newWidth = img.width * image_mod
+		newHeight = img.height * image_mod
+		imgOutput = jetson_utils.cudaAllocMapped(width=newWidth, 
+                                         height=newHeight, 
+                                         format=img.format)
+
+		jetson_utils.cudaResize(img, imgOutput)
+
+		display.RenderOnce(imgOutput, x=0, y=0)
+		display.SetTitle("Object Detection | Network: {:0f} FPS".format(net.GetNetworkFPS()))
 
 		# If there are no objects detected in the current frame
 		if len(detections) == 0:
-			# Update the is talking variable
-			isTalking = False
-			with open(long_path + "currentlySpeaking.txt") as speakControl:
-				for line in speakControl.readlines():
-					if line.strip() == "true":
-						isTalking = True
-			# print(isTalking)
 			# Pull any warnings off of the warning stack
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
-				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + str(round(time.time() - start_time, 2))
+				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + time_string
 				warningStack.remove(warningStack[0])
 
 		for detection in detections:
@@ -138,7 +175,6 @@ while True:
 			inches = -1
 			closeEnough = False
 			enoughTime = False
-			isTalking = False
 			if currentLabel in objectWidths:
 				inches = distance_to_camera(BASE_WIDTH, focalLength, (BASE_WIDTH / objectWidths[currentLabel]) * detection.Width)
 				if inches < warnDistance[currentLabel] * 12:
@@ -148,29 +184,24 @@ while True:
 					enoughTime = True
 					lastWarnTime[currentLabel] = time.time()
 
-			with open(long_path + "currentlySpeaking.txt") as speakControl:
-				for line in speakControl.readlines():
-					if line.strip() == "true":
-						isTalking = True
-			# print(isTalking)
-
-			# print ("Close %s Time %s Talking %s" % (closeEnough, enoughTime, isTalking))
-
 			name = os.path.join(mp3_path, currentLabel + ".mp3")
 			# print(name)
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
-				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + str(round(time.time() - start_time, 2))
+				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + time_string
 				warningStack.remove(warningStack[0])
 				isTalking = True
 			elif os.path.isfile(name) and closeEnough and enoughTime and not isTalking:
 				allSubprocesses[currentLabel] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", currentLabel])
 				os.system("echo true > " + long_path + "currentlySpeaking.txt")
-				warningText = "Last warning: \"" + warnings[currentLabel][1:] + "\" at " + str(round(time.time() - start_time, 2))
+				warningText = "Last warning: \"" + warnings[currentLabel][1:] + "\" at " + time_string
 
 			if os.path.isfile(name) and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
 				warningStack.append(currentLabel)
 
-os.system("echo false > " + long_path + "currentlySpeaking.txt")
-os.system("echo false > " + full_allow_path)
+#os.system("echo false > " + long_path + "currentlySpeaking.txt")
+#os.system("echo false > " + full_allow_path)
+shelf = shelve.open(shelf_path)
+shelf["vision_down"] = True
+shelf.close()

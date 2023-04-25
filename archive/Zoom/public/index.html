@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoom Web SDK Demo</title>
+  <link type="text/css" rel="stylesheet" href="/node_modules/@zoomus/websdk/dist/css/bootstrap.css" />
+  <link type="text/css" rel="stylesheet" href="/node_modules/@zoomus/websdk/dist/css/react-select.css" />
+</head>
+<body>
+  <div id="zmmtg-root"></div>
+  <div id="aria-notify-area"></div>
+
+  <h1>Join a Zoom Meeting</h1>
+  <form id="join-meeting-form">
+    <label for="meeting-number">Meeting Number:</label>
+    <input type="text" id="meeting-number" required>
+    <br>
+
+    <label for="display-name">Display Name:</label>
+    <input type="text" id="display-name" required>
+    <br>
+
+    <label for="meeting-password">Meeting Password (if required):</label>
+    <input type="text" id="meeting-password">
+    <br>
+
+    <button type="submit">Join Meeting</button>
+  </form>
+
+  <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/react-dom.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/redux.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/redux-thunk.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/lodash.min.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/jquery-i18next.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/lib/vendor/i18next.js"></script>
+  <script src="/node_modules/@zoomus/websdk/dist/zoomus-websdk.umd.min.js"></script>
+  <script>
+    ZoomMtg.setZoomJSLib('/node_modules/@zoomus/websdk/dist/lib', '/av');
+    ZoomMtg.preLoadWasm();
+    ZoomMtg.prepareJssdk();
+
+    const API_KEY = 'QSad0m5NQkq2XoeT8s8osw';
+
+    async function joinMeeting() {
+      const meetingNumber = document.getElementById('meeting-number').value;
+      const userName = document.getElementById('display-name').value;
+      const passWord = document.getElementById('meeting-password').value || '';
+      const role = 0;
+
+      const response = await fetch('/api/signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingNumber, role }),
+      });
+
+      const { signature } = await response.json();
+
+      ZoomMtg.init({
+        leaveUrl: 'http://localhost:3000',
+        isSupportAV: true,
+        success: function() {
+          ZoomMtg.join({
+            meetingNumber: meetingNumber,
+            userName: userName,
+            signature: signature,
+            apiKey: API_KEY,
+            userEmail: '',
+            passWord: passWord,
+            success: function() {
+              console.log('Join meeting success');
+            },
+            error: function(res) {
+              console.log(res);
+            }
+          });
+        },
+        error: function(res) {
+          console.log(res);
+        }
+      });
+    }
+
+    document.getElementById('join-meeting-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      await joinMeeting();
+    });
+  </script>
+</body>
+</html>

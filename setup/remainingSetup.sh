@@ -21,6 +21,8 @@ python -m pip install pexpect
 python -m pip install wifi
 python -m pip install customtkinter
 python -m pip install kivy
+python -m pip install pygame
+python -m pip install pynput
 python -m pip install --upgrade pip
 python -m pip install --upgrade Pillow
 
@@ -28,8 +30,10 @@ python3.6 -m pip install gtts
 python3.6 -m pip install imutils
 python3.6 -m pip install pexpect
 python3.6 -m pip install gTTS
+python3.6 -m pip install selenium
+python3.6 -m pip install pynput
 
-sudo apt-get install git cmake libpython3-dev python3-numpy mpg321
+sudo apt-get install git cmake libpython3-dev python3-numpy mpg321 chromium-chromdriver nano 
 cd ~
 git clone --recursive https://github.com/dusty-nv/jetson-inference
 cd jetson-inference
@@ -52,7 +56,8 @@ fi
 
 echo $'\nConfiguring startup scripts'
 mkdir ~/.config/autostart
-cp *.desktop ~/.config/autostart
+cp start_UI.desktop ~/.config/autostart
+cp start_detection.desktop ~/.config/autostart
 
 echo $'\nActivating fan service'
 sudo cp start_fan.service /etc/systemd/system/
