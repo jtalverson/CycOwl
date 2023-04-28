@@ -21,6 +21,8 @@ with open(long_path + "allLabelData.txt") as allWarnings:
 		currentSplit = warning.split(';')
 		speechWarnings[currentSplit[0]] = currentSplit[1]
 
+speechWarnings["zoom_dropped"] = "Zoom connection loss. Please re-enable"
+
 # print (speechWarnings)
 for speech in speechWarnings:
 	current = gTTS(text=speechWarnings[speech], lang=language, slow=False)

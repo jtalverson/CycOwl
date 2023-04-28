@@ -25,6 +25,7 @@ default_width = 120
 long_path = "/home/" + getpass.getuser() + "/CycOwl/"
 
 shelf_path = long_path + "shelf/shelf"
+
 print(shelf_path)
 shelf = shelve.open(shelf_path)
 shelf["processing"] = False
@@ -119,10 +120,6 @@ class App(customtkinter.CTk):
         self.up_connect = customtkinter.CTkButton(master=self.sidebar_frame, text="Update Connections", border_width=2, width=default_width,
                                                   command=lambda: callUpdate(self))
         self.up_connect.grid(row=4, column=0, padx=(20, 20), pady=(10, 10), sticky="nsew")
-
-        #self.key_button = customtkinter.CTkButton(self.sidebar_frame, text="Keyboard", border_width=2, width=default_width,
-        #                                          command=lambda: callKey)
-        #self.key_button.grid(row=5, column=0, padx=20, pady=(10, 10))
 
         self.exit_button = customtkinter.CTkButton(self.sidebar_frame, text="Exit", border_width=2, width=default_width,
                                                    command=lambda: callClose(self))
@@ -220,6 +217,7 @@ class App(customtkinter.CTk):
         self.ride.grid(row=8, column=3, padx=20, pady=(20, 10))
 
         self.update()
+        self.update_idletasks()
 
         if self.attributes("-fullscreen") != fullscreen:
             self.attributes('-fullscreen', fullscreen)
@@ -295,13 +293,18 @@ def disconnect(self, quiet):
     if self.bprev != "":
         p.sendline("disconnect " + self.bprev)
         p.expect("#")
+        self.bmacs.append(self.bprev)
         self.bprev = ""
     else:
         print("No Bluetooth Devices are connected")
     p.sendline("quit")
     p.close()
-    self.bprevSSID = ""
+    if self.bprevSSID != "":
+        self.bdevices.append(self.bprevSSID)
+        self.bprevSSID = ""
     self.bluec_device.configure(text="None")
+    self.blue_optionmenu.configure(values=self.bdevices)
+    self.blue_optionmenu.set("Select Bluetooth Device")
     if not quiet:
         enableAll(self)
         setStatus(base_status)
@@ -385,6 +388,7 @@ def connectWifi(self):
 
 
 def disconnectWifi(self):
+    print("disconnecting")
     prev = self.wcurrent
     command = 'nmcli d wifi disconnect ' + self.wcurrent
     pexpect.run(command)
@@ -438,6 +442,7 @@ def callUpdate(self):
     getWifis(self)
     if self.wcurrent != "":
         name = self.wcurrent
+        self.wdevices.remove(name)
     else:
         name = "None"
     self.wific_name.configure(text=name)
@@ -458,10 +463,14 @@ def callConnectBluetooth(self):
         connect(self)
         if self.bprevSSID != "":
             self.bluec_device.configure(text=self.bprevSSID)
+            self.bdevices.remove(self.bprevSSID)
+            self.bmacs.remove(self.bprev)
         else:
             self.bluec_device.configure(text="None")
     else:
         setStatus("Invalid Bluetooth device")
+    self.blue_optionmenu.configure(values=self.bdevices)
+    self.blue_optionmenu.set("Select Bluetooth Device")
     enableAll(self)
 
 
@@ -508,7 +517,10 @@ def join_zoom(self):
     self.zoom.focus_set()
     #self.zoom.configure(state="disabled")
     disableAll(self)
-    if self.wcurrent != "":
+    shelf = shelve.open(shelf_path)
+    vision_down = shelf["vision_down"]
+    shelf.close()
+    if self.wcurrent != "" and not vision_down:
         setStatus("Launching Zoom room")
         subprocess.Popen(["python3.6", "CycOwl/join_zoom.py"])
         zoom_error = False
@@ -519,10 +531,10 @@ def join_zoom(self):
             minimize = shelf["share_ready"]
             zoom_error = shelf["zoom_error"]
             status = shelf["status"]
+            shelf.close()
             if status != old_status:
                 setStatus(status)
                 old_status = status
-            shelf.close()
             time.sleep(.05)
 
         if not zoom_error:
@@ -544,18 +556,44 @@ def join_zoom(self):
             setStatus("Zoom room launched")
             self.zstart = "Yes"
             self.finalc_label.configure(text="Zoom Started")
-            self.after(500, disable_zoom, self)
+            self.after(500, disable_zoom_button, self)
         else:
             setStatus("Zoom error occurred, try again")
+            self.deiconify()
+    elif self.wcurrent == "":
+        setStatus("No Wi-Fi connected. Launch fail")
     else:
-        setStatus("No Wi-Fi connected. Cannot launch")
-    enableAll(self)
-    
+        setStatus("Vision system not running")
+    enableAll(self)    
 
 
-def disable_zoom(self):
-    self.zoom.configure(state="disabled")
-    self.after(500, disable_zoom, self)
+def disable_zoom_button(self):
+    shelf = shelve.open(shelf_path)
+    error = shelf["zoom_error"]
+    shelf.close()
+    if not error:
+        self.zoom.configure(state="disabled")
+        self.after(500, disable_zoom_button, self)
+    else:
+        self.zoom.configure(state="normal")
+        self.zstart = "No"
+        self.finalc_label.configure(text="Zoom Disconnected")
+        setStatus("Zoom disconnected")
+        shelf = shelve.open(shelf_path)
+        shelf["zoom_error"] = False
+        shelf["share_ready"] = False
+        shelf["minimized"] = False
+        shelf["share_started"] = False
+        shelf["status"] = ""
+        talking = shelf["talking"]
+        shelf.close()
+        while talking:
+            shelf = shelve.open(shelf_path)
+            talking = shelf["talking"]
+            shelf.close()
+            time.sleep(.1)
+        subprocess.Popen(["python3.6", long_path + "detection/speakWarning.py", "zoom_dropped"])
+        callUpdate(self)
 
 
 def start_ride(self):
@@ -650,4 +688,4 @@ os.system("rm " + shelf_path[:-5] + "*")
 if secret_password != "cap2023":
     command = 'sudo shutdown now'
     print(command)
-    #pexpect.run(command)
+    pexpect.run(command)

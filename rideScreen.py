@@ -7,6 +7,7 @@ import os
 import argparse
 import shelve
 import pygame
+from PIL import Image
 
 pygame.mixer.init()
 
@@ -42,12 +43,17 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
         self.val = customtkinter.DoubleVar()
-        self.slider = customtkinter.CTkSlider(master = self, from_=100, to=0, variable = self.val, command= lambda v: pexpect.run("amixer -D pulse sset Master " + str(int(self.val.get())) + "%"))
+        self.slider = customtkinter.CTkSlider(master = self, from_=0, to=100, number_of_steps=100, orientation="vertical", variable = self.val, command= lambda v: pexpect.run("amixer -D pulse sset Master " + str(int(self.val.get())) + "%"))
         self.slider.place(relx = 0.5, rely = 0.5, anchor = tkinter.CENTER)
         self.slider.set(50)
 
-        self.exit_button = customtkinter.CTkButton(self, text="Exit", command=lambda: callClose(self))
-        self.exit_button.grid(row = 4, column = 4, padx = 20, pady = (20 , 10))
+        #self.exit_button = customtkinter.CTkButton(self, text="Exit", command=lambda: callClose(self))
+        #self.exit_button.grid(row = 4, column = 4, padx = 20, pady = (20 , 10))
+        height = 80
+        width = 20
+        cyc_owl = customtkinter.CTkImage(light_image=Image.open(long_path + "Exit.png"), size=(width, height-40))
+        image_holder = customtkinter.CTkButton(self, image=cyc_owl, text=None, border_width=1, width=width, height=height, command=lambda: callClose(self))
+        image_holder.grid(row = 4, column = 4, padx = 20, pady = (20 , 10))
 
         if self.attributes("-fullscreen") != fullscreen:
             self.attributes('-fullscreen', fullscreen)

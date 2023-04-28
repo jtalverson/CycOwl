@@ -163,10 +163,12 @@ while display.IsOpen() and not control:
 
 		# If there are no objects detected in the current frame
 		if len(detections) == 0:
+			shelf = shelve.open(shelf_path)
+			isTalking = shelf["talking"]
+			shelf.close()
 			# Pull any warnings off of the warning stack
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
-				os.system("echo true > " + long_path + "currentlySpeaking.txt")
 				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + time_string
 				warningStack.remove(warningStack[0])
 
@@ -184,24 +186,24 @@ while display.IsOpen() and not control:
 					enoughTime = True
 					lastWarnTime[currentLabel] = time.time()
 
+			shelf = shelve.open(shelf_path)
+			isTalking = shelf["talking"]
+			shelf.close()
+
 			name = os.path.join(mp3_path, currentLabel + ".mp3")
 			# print(name)
 			if len(warningStack) > 0 and not isTalking:
 				allSubprocesses[warningStack[0]] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", warningStack[0]])
-				os.system("echo true > " + long_path + "currentlySpeaking.txt")
 				warningText = "Last warning: \"" + warnings[warningStack[0]][1:] + "\" at " + time_string
 				warningStack.remove(warningStack[0])
 				isTalking = True
 			elif os.path.isfile(name) and closeEnough and enoughTime and not isTalking:
 				allSubprocesses[currentLabel] = subprocess.Popen(["python3.6", long_path + "speakWarning.py", currentLabel])
-				os.system("echo true > " + long_path + "currentlySpeaking.txt")
 				warningText = "Last warning: \"" + warnings[currentLabel][1:] + "\" at " + time_string
 
 			if os.path.isfile(name) and closeEnough and enoughTime and isTalking and currentLabel not in warningStack:
 				warningStack.append(currentLabel)
 
-#os.system("echo false > " + long_path + "currentlySpeaking.txt")
-#os.system("echo false > " + full_allow_path)
 shelf = shelve.open(shelf_path)
 shelf["vision_down"] = True
 shelf.close()

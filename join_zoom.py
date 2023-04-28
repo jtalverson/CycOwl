@@ -67,13 +67,33 @@ def start_zoom():
     shelf.close()
     claim_host = "/html/body/div[2]/div[2]/div/div[2]/div/div[1]/div[1]/div[4]/div[1]/div/div[2]/button[2]"
     
-    
     try:
-        claim_host_button = WebDriverWait(driver, timeout=20).until(lambda d: d.find_element(By.XPATH, claim_host))
-        claim_host_button.click()
-        join_audio_other = "//*[@id='foot-bar']/div[1]/div[1]/button"
-        other_join = WebDriverWait(driver, timeout=20).until(lambda d: d.find_element(By.XPATH, join_audio_other))
-        other_join.click()
+        trys = 0
+        while trys < 5:
+            if trys == 0:
+                time_limit = 20
+            else:
+                time_limit = 5
+            
+            try:
+                claim_host_button = WebDriverWait(driver, timeout=time_limit).until(EC.element_to_be_clickable((By.XPATH, claim_host)))
+                claim_host_button.click()
+            except:
+                pass
+            trys += 1
+
+        if trys == 5:
+            raise Exception()
+
+        clicked = False
+        while not clicked:
+            try:
+                join_audio_other = "//*[@id='foot-bar']/div[1]/div[1]/button"
+                other_join = WebDriverWait(driver, timeout=3).until(EC.element_to_be_clickable((By.XPATH, join_audio_other)))
+                other_join.click()
+                clicked = True
+            except:
+                pass
     except:
         pass
 
@@ -124,8 +144,14 @@ try:
 
     print("screen minimized, ready to proceed")
 
-    screenshare = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='sharing-entry-button-container-dropdown']"))
-    screenshare.click()
+    sharing = False
+    while not sharing:
+        try:
+            screenshare = WebDriverWait(driver, timeout=30).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='sharing-entry-button-container-dropdown']")))
+            screenshare.click()
+            sharing = True
+        except:
+            pass
 
     keyboard = keyboard.Controller()
 
@@ -144,16 +170,41 @@ try:
     shelf.close()
 
     close = False
-    while not close:
+    wifi_error = False
+    count = 0
+    while not close and not wifi_error:
         shelf = shelve.open(shelf_path)
         close = shelf["stop"]
         shelf.close()
+        try:
+            retry_button = "/html/body/div[13]/div/div/div/div[2]/div/button[2]"
+            retry = WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.XPATH, retry_button)))
+            #retry.click()
+            print ("setting wifi error to true")
+            wifi_error = True
+            
+            #screenshare = WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='sharing-entry-button-container-dropdown']")))
+            
+            #print("found screenshare " + str(count))
+        except:
+            count += 1
+            print("retry button timed out " + str(count))
+            pass
+            #print("share screen timed out")
+            #wifi_error = True
         sleep(.75)
 
-    end_meeting = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='foot-bar']/div[3]"))
-    end_meeting.click()
-    for_all = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='wc-footer']/div[2]/div[2]/div/div/button[1]"))
-    for_all.click()
+    if wifi_error:
+        print("Wifi error")
+        raise Exception("Wi-Fi disconnected")
+
+    try:
+        end_meeting = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='foot-bar']/div[3]"))
+        end_meeting.click()
+        for_all = WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, "//*[@id='wc-footer']/div[2]/div[2]/div/div/button[1]"))
+        for_all.click()
+    except:
+        pass
 
     shelf = shelve.open(shelf_path)
     shelf["zoom_down"] = True
@@ -161,7 +212,14 @@ try:
     driver.close()
 except Exception as e:
     print(e)
-    print("error occurred while loading zoom")
+    print("error occurred with zoom")
+    try:
+        end_meeting = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, "//*[@id='foot-bar']/div[3]"))
+        end_meeting.click()
+        for_all = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, "//*[@id='wc-footer']/div[2]/div[2]/div/div/button[1]"))
+        for_all.click()
+    except:
+        pass
     driver.close()
     shelf = shelve.open(shelf_path)
     shelf["zoom_down"] = True
